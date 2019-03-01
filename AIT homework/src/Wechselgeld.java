@@ -4,12 +4,14 @@ import java.io.InputStreamReader;
 
 public class Wechselgeld {
 
+	// VARIABLEN
 	public static BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
+	// arrays
 	public static int[] wert = { 5, 10, 20, 50, 100, 200 };
-	//	public static int[] wechselgeld = { 3, 2, 2, 4, 1, 3 };
 	public static int[] wechselgeld = { 5, 5, 5, 5, 5, 5 };
 
+	// zahlen
 	public static int preis = 5;
 	public static int eingabe;
 	public static int rückgeld;
@@ -19,6 +21,7 @@ public class Wechselgeld {
 		ausgebenRückgeld();
 	}
 
+	// einlesen/berechnen/initialisieren der daten
 	public static void initData() throws NumberFormatException, IOException {
 		System.out.print("Bitte geben Sie des Preis des gewählten Artikels (in Euro) ein: ");
 		preis = (int) (Double.parseDouble(reader.readLine()) * 100);
@@ -33,6 +36,7 @@ public class Wechselgeld {
 		}
 	}
 
+	// ausgabe des rückgelds als münzen
 	public static void ausgebenRückgeld() {
 
 		for (int i = wert.length - 1; i >= 0; i--) {
