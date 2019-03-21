@@ -16,8 +16,8 @@ public class Lottozahlen {
 		}
 		
 		for (int i = 0; i < wahrscheinlichkeit.length; i++) {
-			System.out.print(wahrscheinlichkeit[i]);
-			System.out.print("    " + i);
+			System.out.printf("%2d", i);
+			System.out.printf("%8d", wahrscheinlichkeit[i]);
 			System.out.println();
 		}
 
