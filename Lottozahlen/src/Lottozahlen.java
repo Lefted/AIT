@@ -2,42 +2,62 @@
 public class Lottozahlen {
 
 	static int[] zahlen = new int[5];
-	static int[] wahrscheinlichkeit = new int[50];
+	static int[] statistik = new int[50];
 
 	public static void main(String[] args) {
 
 		for (int i = 0; i < 10000; i++) {
-			generate();
+//			generate();
+
+			for (int k = 0; k < zahlen.length; i++) {
+				do {
+					int random = (int) (Math.random() * 49 + 1);
+					zahlen[k] = random;
+				} while (zahlDoppelt(zahlen[k]));
+
+			}
+
+			output();
 
 			for (int j = 0; j < zahlen.length; j++) {
-				wahrscheinlichkeit[zahlen[j]] += 1;
+				statistik[zahlen[j]] += 1;
 			}
 
 		}
-		
-		for (int i = 0; i < wahrscheinlichkeit.length; i++) {
+		System.out.println();
+
+		for (int i = 0; i < statistik.length; i++) {
 			System.out.printf("%2d", i);
-			System.out.printf("%8d", wahrscheinlichkeit[i]);
+			System.out.printf("%8d", statistik[i]);
 			System.out.println();
 		}
 
 	}
 
-	private static void generate() {
-		for (int i = 0; i < zahlen.length; i++) {
-			int random = (int) (Math.random() * 49 + 1);
-
-			for (int j = 0; j < zahlen.length; j++) {
-				if (zahlen[j] == random) {
-					generate();
-					return;
-				}
+	private static boolean zahlDoppelt(int testZahl) {
+		for (int i = 0; i < testZahl; i++) {
+			if (zahlen[i] == testZahl) {
+				return true;
 			}
-			zahlen[i] = random;
 		}
+		return false;
+
 	}
 
-	@SuppressWarnings("unused")
+//	private static void generate() {
+//		for (int i = 0; i < zahlen.length; i++) {
+//			int random = (int) (Math.random() * 49 + 1);
+//
+//			for (int j = 0; j < zahlen.length; j++) {
+//				if (zahlen[j] == random) {
+//					generate();
+//					return;
+//				}
+//			}
+//			zahlen[i] = random;
+//		}
+//	}
+
 	private static void output() {
 		StringBuffer buffer = new StringBuffer();
 		for (int i = 0; i < zahlen.length; i++) {
