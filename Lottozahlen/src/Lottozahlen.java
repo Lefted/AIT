@@ -13,6 +13,7 @@ public class Lottozahlen {
 				do {
 					int random = (int) (Math.random() * 49 + 1);
 					zahlen[k] = random;
+					System.out.println("Loop");
 				} while (zahlDoppelt(zahlen[k]));
 
 			}
