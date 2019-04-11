@@ -20,12 +20,12 @@ public class Wetterstation {
 		int max = temp[0];
 		int min = temp[0];
 
-		for (int i = 0; i < temp.length; i++) {
-			if (temp[i] > max) {
-				max = temp[i];
+		for (int element : temp) {
+			if (element > max) {
+				max = element;
 			}
-			if (temp[i] < min) {
-				min = temp[i];
+			if (element < min) {
+				min = element;
 			}
 		}
 
@@ -33,6 +33,7 @@ public class Wetterstation {
 		System.out.println("Die niedrigste gemessene Temperatur ist: " + min);
 		System.out.println();
 
+		@SuppressWarnings("unused")
 		int indexTag = 0;
 		int[] diff = new int[temp.length - 1];
 
@@ -42,7 +43,7 @@ public class Wetterstation {
 				diff[i] = temp[i] - temp[i + 1];
 			} else {
 				diff[i] = temp[i + 1] - temp[i];
-			}			
+			}
 		}
 		
 		int maxDifferenz = diff[0];
