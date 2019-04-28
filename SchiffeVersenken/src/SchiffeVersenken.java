@@ -7,11 +7,13 @@ public class SchiffeVersenken {
 	public static void main(String[] args) throws IOException {
 		//VARIABLEN
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		// spielfeld[x][y]
 		char[][] spielfeld = initSpielfeld();
 
 		ausgabeSpielfeld(spielfeld);
 
 		//aufgabe 3
+		//5x : einlesen, überprüfen, schiff hinzufügen, feld ausgeben
 		eingabeSchiffe(spielfeld, reader);
 	}
 
@@ -35,7 +37,7 @@ public class SchiffeVersenken {
 			System.out.print(i + " ");
 			for (int j = 0; j < spielfeld[0].length; j++) {
 
-				System.out.print(spielfeld[i][j] + " ");
+				System.out.print(spielfeld[j][i] + " ");
 			}
 			System.out.println();
 		}
@@ -74,7 +76,7 @@ public class SchiffeVersenken {
 			System.out.println();
 
 			//RICHTUNG
-			System.err.print(
+			System.out.print(
 					"In welcher Richtung soll das " + (i + 1) + ".Schiff (Länge = " + laenge + ") platziert werden? (H)orizontal/(V)ertikal: ");
 			String eingabe = reader.readLine();
 			//in großbuchstaben umwandeln
@@ -89,7 +91,7 @@ public class SchiffeVersenken {
 			}
 
 			//REIHE
-			System.err.print("In welcher Reihe soll der Anfang des " + (i + 1) + ".Schiffs (Länge = " + laenge + ") platziert werden? (0-9): ");
+			System.out.print("In welcher Reihe soll der Anfang des " + (i + 1) + ".Schiffs (Länge = " + laenge + ") platziert werden? (0-9): ");
 			eingabe = reader.readLine();
 			//in großbuchstaben umwandeln
 			char reihe = Character.toUpperCase(eingabe.charAt(0));
@@ -103,7 +105,7 @@ public class SchiffeVersenken {
 			}
 
 			//SPALTE
-			System.err.print("In welcher Spalte soll der Anfang des " + (i + 1) + ". Schiffs (Länge = " + laenge + ") platziert werden? (A-J): ");
+			System.out.print("In welcher Spalte soll der Anfang des " + (i + 1) + ". Schiffs (Länge = " + laenge + ") platziert werden? (A-J): ");
 			eingabe = reader.readLine();
 			//in großbuchstaben umwandeln
 			char spalte = Character.toUpperCase(eingabe.charAt(0));
@@ -116,13 +118,45 @@ public class SchiffeVersenken {
 				spalte = Character.toUpperCase(eingabe.charAt(0));
 			}
 			
+			//TODO
+			//sichergehen, dass Schiff nicht außerhalb des spielfelds geht
+			//sichergehen, dass Schiff nicht mit anderen Schiffen überlappt
+
+			//spielfeld[][] aktuelles schiff hinzufügen
+			ergaenzeSchiffe(spielfeld, richtung, reihe, spalte, laenge);
+
 			//FORAMT
 			System.out.println();
-			
+
 			//nach jeder eingabe spielfeld aktualisieren
 			ausgabeSpielfeld(spielfeld);
 		}
 
+	}
+
+	//spielfeld neue schiffe hinzufügen
+	private static void ergaenzeSchiffe(char[][] spielfeld, char richtung, char reihe, char spalte, int laenge) {
+		//spalte/reihe in koordinaten umwandeln
+		int posX = spalte - 'A';
+		int posY = reihe - '0';
+
+		if (richtung == 'H') {
+			for (int i = 0; i <= laenge; i++) {
+				spielfeld[posX][posY] = '*';
+				posX++;
+			}
+		} else if (richtung == 'V') {
+			for (int i = 0; i < laenge; i++) {
+				spielfeld[posX][posY] = '*';
+				posY++;
+			}
+		} else {
+			//fehler verarbeiten
+			System.out.println();
+			System.err.println("Variable 'richtung' has an invalid value: " + richtung);
+			System.out.println("Exiting program");
+			System.exit(-1);
+		}
 	}
 
 	//auf richtige spalte testen
