@@ -141,7 +141,7 @@ public class SchiffeVersenken {
 		int posY = reihe - '0';
 
 		if (richtung == 'H') {
-			for (int i = 0; i <= laenge; i++) {
+			for (int i = 0; i < laenge; i++) {
 				spielfeld[posX][posY] = '*';
 				posX++;
 			}
