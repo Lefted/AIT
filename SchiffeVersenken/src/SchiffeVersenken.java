@@ -15,35 +15,6 @@ public class SchiffeVersenken {
 		eingabeSchiffe(spielfeld, reader);
 	}
 
-	//auf richtige spalte testen
-	private static boolean richtigeSpalte(char spalte) {
-		if (!((spalte == 'A') || (spalte == 'B') || (spalte == 'C') || (spalte == 'D') || (spalte == 'E') || (spalte == 'F') || (spalte == 'G')
-				|| (spalte == 'H') || (spalte == 'I') || (spalte == 'J'))) {
-			return false;
-		}
-		return true;
-	}
-
-	//auf richtige richtung testen
-	private static boolean richtigeRichtung(char richtung) {
-		if ((richtung != 'H') && (richtung != 'V')) {
-			return false;
-		}
-		return true;
-	}
-
-	//auf richtige reihe testen
-
-	//auf richtige reihe testen
-	private static boolean richtigeReihe(char reihe) {
-		if (!((0 <= Character.getNumericValue(reihe)) && (Character.getNumericValue(reihe) < 10))) {
-			return false;
-		}
-		return true;
-	}
-
-	//spielfeld mit '.' initialisieren
-
 	//spielfeld mit '.' initialisieren
 	private static char[][] initSpielfeld() {
 		char[][] spielfeld = new char[10][10];
@@ -55,8 +26,6 @@ public class SchiffeVersenken {
 		}
 		return spielfeld;
 	}
-
-	//spielfeld in der konsole ausgaben
 
 	//spielfeld in der konsole ausgeben
 	private static void ausgabeSpielfeld(char[][] spielfeld) {
@@ -73,12 +42,33 @@ public class SchiffeVersenken {
 	}
 
 	//aufgabe 3
+	//spieler schiffer platzieren lassen
 	private static void eingabeSchiffe(char[][] spielfeld, BufferedReader reader) throws IOException {
-
 		for (int i = 0; i < 5; i++) {
+			//länge deklarieren
+			int laenge;
 
-			// TODO switch auf i --> länge
-			int laenge = 2;
+			//länge der schiffe anhand des durchgangs setzen
+			switch (i + 1) {
+			case 1:
+				laenge = 2;
+				break;
+			case 2:
+				laenge = 3;
+				break;
+			case 3:
+				laenge = 3;
+				break;
+			case 4:
+				laenge = 4;
+				break;
+			case 5:
+				laenge = 5;
+				break;
+			default:
+				laenge = 2;
+				break;
+			}
 
 			//FORMAT
 			System.out.println();
@@ -125,7 +115,38 @@ public class SchiffeVersenken {
 				eingabe = reader.readLine();
 				spalte = Character.toUpperCase(eingabe.charAt(0));
 			}
+			
+			//FORAMT
+			System.out.println();
+			
+			//nach jeder eingabe spielfeld aktualisieren
+			ausgabeSpielfeld(spielfeld);
 		}
 
+	}
+
+	//auf richtige spalte testen
+	private static boolean richtigeSpalte(char spalte) {
+		if (!((spalte == 'A') || (spalte == 'B') || (spalte == 'C') || (spalte == 'D') || (spalte == 'E') || (spalte == 'F') || (spalte == 'G')
+				|| (spalte == 'H') || (spalte == 'I') || (spalte == 'J'))) {
+			return false;
+		}
+		return true;
+	}
+
+	//auf richtige richtung testen
+	private static boolean richtigeRichtung(char richtung) {
+		if ((richtung != 'H') && (richtung != 'V')) {
+			return false;
+		}
+		return true;
+	}
+
+	//auf richtige reihe testen
+	private static boolean richtigeReihe(char reihe) {
+		if (!((0 <= Character.getNumericValue(reihe)) && (Character.getNumericValue(reihe) < 10))) {
+			return false;
+		}
+		return true;
 	}
 }
