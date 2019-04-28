@@ -74,7 +74,7 @@ public class SchiffeVersenken {
 			System.out.println();
 
 			//RICHTUNG
-			System.out.print(
+			System.err.print(
 					"In welcher Richtung soll das " + (i + 1) + ".Schiff (L‰nge = " + laenge + ") platziert werden? (H)orizontal/(V)ertikal: ");
 			String eingabe = reader.readLine();
 			//in groﬂbuchstaben umwandeln
@@ -89,7 +89,7 @@ public class SchiffeVersenken {
 			}
 
 			//REIHE
-			System.out.print("In welcher Reihe soll der Anfang des " + (i + 1) + ".Schiffs (L‰nge = " + laenge + ") platziert werden? (0-9): ");
+			System.err.print("In welcher Reihe soll der Anfang des " + (i + 1) + ".Schiffs (L‰nge = " + laenge + ") platziert werden? (0-9): ");
 			eingabe = reader.readLine();
 			//in groﬂbuchstaben umwandeln
 			char reihe = Character.toUpperCase(eingabe.charAt(0));
@@ -103,7 +103,7 @@ public class SchiffeVersenken {
 			}
 
 			//SPALTE
-			System.out.print("In welcher Spalte soll der Anfang des " + (i + 1) + ". Schiffs (L‰nge = " + laenge + ") platziert werden? (A-J): ");
+			System.err.print("In welcher Spalte soll der Anfang des " + (i + 1) + ". Schiffs (L‰nge = " + laenge + ") platziert werden? (A-J): ");
 			eingabe = reader.readLine();
 			//in groﬂbuchstaben umwandeln
 			char spalte = Character.toUpperCase(eingabe.charAt(0));
