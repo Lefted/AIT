@@ -105,7 +105,7 @@ public class SchiffeVersenken {
 				}
 
 				// TODO
-				// sichergehen, dass Schiff nicht mit anderen Schiffen überlappt
+				// sichergehen dass das schiff nicht mit anderen schiffen überlappt
 
 				if (schiffAußerhalb(richtung, reihe, spalte, spielfeld, laenge)) {
 					System.out.println();
@@ -182,25 +182,23 @@ public class SchiffeVersenken {
 		int posX = spalte - 'A';
 		int posY = reihe - '0';
 
+		boolean ergebnis = false;
+		
 		if (richtung == 'H') {
 			// potentielle positionen durchgehen
 			for (int i = 0; i < laenge; i++) {
 				posX++;
 				// testen ob außerhalb des bereichs
-				if (posX >= spielfeld.length) {
-					return true;
-				}
+				ergebnis = (posX > spielfeld.length) ? true : ergebnis;
 			}
 		} else if (richtung == 'V') {
 			// potentielle positionen durchgehen
 			for (int i = 0; i < laenge; i++) {
 				posY++;
 				// testen ob außerhalb des bereichs
-				if (posY >= spielfeld[0].length) {
-					return true;
-				}
+				ergebnis = (posY > spielfeld[0].length) ? true : ergebnis;
 			}
 		}
-		return false;
+		return ergebnis;
 	}
 }
