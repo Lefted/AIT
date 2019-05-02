@@ -104,12 +104,17 @@ public class SchiffeVersenken {
 					spalte = Character.toUpperCase(eingabe.charAt(0));
 				}
 
-				// TODO
-				// sichergehen dass das schiff nicht mit anderen schiffen überlappt
-
+				// sichergehen, dass schiff nicht außerhalb des spielfelds liegt
 				if (schiffAußerhalb(richtung, reihe, spalte, spielfeld, laenge)) {
 					System.out.println();
 					System.out.println("Schiff liegt außerhalb des Spielfelds!");
+					System.out.println("Bitte erneut eingeben.");
+					wiederholen = true;
+				}
+				// sichergehen, dass schiff nicht mit anderem überlappt
+				else if (schiffUeberlappt(richtung, reihe, spalte, spielfeld, laenge)) {
+					System.out.println();
+					System.out.println("Schiff kann nicht an Position gesetzt werden, wo bereits ein Schiff liegt!");
 					System.out.println("Bitte erneut eingeben.");
 					wiederholen = true;
 				} else {
@@ -177,6 +182,31 @@ public class SchiffeVersenken {
 		return true;
 	}
 
+	// testen ob schiff mit anderem schiff überlappt
+	private static boolean schiffUeberlappt(char richtung, char reihe, char spalte, char[][] spielfeld, int laenge) {
+		int posX = spalte - 'A';
+		int posY = reihe - '0';
+		
+		boolean ergebnis = false;
+		
+//		if (richtung == 'H') {
+//			// potentielle positionen durchgehen
+//			for (int i = 0; i < laenge; i++) {
+//				posX++;
+//				// testen, ob bereits dort ein schiff gesetzt wurde
+//				ergebnis = (spielfeld[posX][posY] == '*') ? true : ergebnis;
+//			}
+//		} else if (richtung == 'V') {
+//			// potentielle positionen durchgehen
+//			for (int i = 0; i < laenge; i++) {
+//				posY++;
+//				// testen ob bereits dort ein schiff gesetzt wurde
+//				ergebnis = (spielfeld[posX][posY] == '*') ? true : ergebnis;
+//			}
+//		}
+		return ergebnis;
+	}
+	
 	// testen ob schiff außerhalb des spielfeld ist
 	private static boolean schiffAußerhalb(char richtung, char reihe, char spalte, char[][] spielfeld, int laenge) {
 		int posX = spalte - 'A';
@@ -186,17 +216,19 @@ public class SchiffeVersenken {
 		
 		if (richtung == 'H') {
 			// potentielle positionen durchgehen
-			for (int i = 0; i < laenge; i++) {
+			for (int i = 1; i < laenge; i++) {
 				posX++;
 				// testen ob außerhalb des bereichs
-				ergebnis = (posX > spielfeld.length) ? true : ergebnis;
+				ergebnis = (posX >= spielfeld.length) ? true : ergebnis;
+				if (ergebnis) {
+				}
 			}
 		} else if (richtung == 'V') {
 			// potentielle positionen durchgehen
-			for (int i = 0; i < laenge; i++) {
+			for (int i = 1; i < laenge; i++) {
 				posY++;
 				// testen ob außerhalb des bereichs
-				ergebnis = (posY > spielfeld[0].length) ? true : ergebnis;
+				ergebnis = (posY >= spielfeld[0].length) ? true : ergebnis;
 			}
 		}
 		return ergebnis;
