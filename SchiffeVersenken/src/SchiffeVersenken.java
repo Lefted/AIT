@@ -180,15 +180,19 @@ public class SchiffeVersenken {
 		int posY = reihe - '0';
 		
 		if (richtung == 'H') {
+			// potentielle positionen durchgehen
 			for (int i = 0; i < laenge; i++) {
 				posX++;
+				// testen ob außerhalb des bereichs
 				if (posX >= spielfeld.length) {
 					return true;
 				}
 			}
 		} else if (richtung == 'V') {
+			// potentielle positionen durchgehen
 			for (int i = 0; i < laenge; i++) {
 				posY++;
+				// testen ob außerhalb des bereichs
 				if (posY >= spielfeld[0].length) {
 					return true;
 				}
