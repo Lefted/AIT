@@ -182,28 +182,28 @@ public class SchiffeVersenken {
 		return true;
 	}
 
-	// testen ob schiff mit anderem schiff überlappt
+	// testen, ob feld frei
 	private static boolean schiffUeberlappt(char richtung, char reihe, char spalte, char[][] spielfeld, int laenge) {
 		int posX = spalte - 'A';
 		int posY = reihe - '0';
 		
 		boolean ergebnis = false;
 		
-//		if (richtung == 'H') {
-//			// potentielle positionen durchgehen
-//			for (int i = 0; i < laenge; i++) {
-//				posX++;
-//				// testen, ob bereits dort ein schiff gesetzt wurde
-//				ergebnis = (spielfeld[posX][posY] == '*') ? true : ergebnis;
-//			}
-//		} else if (richtung == 'V') {
-//			// potentielle positionen durchgehen
-//			for (int i = 0; i < laenge; i++) {
-//				posY++;
-//				// testen ob bereits dort ein schiff gesetzt wurde
-//				ergebnis = (spielfeld[posX][posY] == '*') ? true : ergebnis;
-//			}
-//		}
+		if (richtung == 'H') {
+			// potentielle positionen durchgehen
+			for (int i = 0; i < laenge; i++) {
+				// testen, ob bereits dort ein schiff gesetzt wurde
+				ergebnis = (spielfeld[posX][posY] != '.') ? true : ergebnis;
+				posX++;
+			}
+		} else if (richtung == 'V') {
+			// potentielle positionen durchgehen
+			for (int i = 0; i < laenge; i++) {
+				// testen ob bereits dort ein schiff gesetzt wurde
+				ergebnis = (spielfeld[posX][posY] != '.') ? true : ergebnis;
+				posY++;
+			}
+		}
 		return ergebnis;
 	}
 	
@@ -215,7 +215,7 @@ public class SchiffeVersenken {
 		boolean ergebnis = false;
 		
 		if (richtung == 'H') {
-			// potentielle positionen durchgehen
+			// potentielle positionen durchgehen bis auf schiffanfang
 			for (int i = 1; i < laenge; i++) {
 				posX++;
 				// testen ob außerhalb des bereichs
@@ -224,7 +224,7 @@ public class SchiffeVersenken {
 				}
 			}
 		} else if (richtung == 'V') {
-			// potentielle positionen durchgehen
+			// potentielle positionen durchgehen bis auf schiffanfang
 			for (int i = 1; i < laenge; i++) {
 				posY++;
 				// testen ob außerhalb des bereichs
