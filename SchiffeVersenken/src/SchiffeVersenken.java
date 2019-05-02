@@ -47,10 +47,8 @@ public class SchiffeVersenken {
 	// spieler schiffer platzieren lassen
 	private static void schiffeEinlesen(char[][] spielfeld, BufferedReader reader) throws IOException {
 		for (int i = 0; i < 5; i++) {
-			// länge der schiffe anhand des durchgangs setzen
+			// länge des schiffe setzen
 			int[] laengen = { 2, 3, 3, 4, 5 };
-
-			// länge deklarieren
 			int laenge = laengen[i];
 
 			// FORMAT
@@ -65,7 +63,7 @@ public class SchiffeVersenken {
 
 			// validen wert für richtung erzwingen
 			while (!richtigeRichtung(richtung)) {
-				System.out.println("Ungültige Eingabe für Richtung!");
+				System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Richtung!");
 				System.out.print("Bitte erneut eingeben (H/V): ");
 				eingabe = reader.readLine();
 				richtung = Character.toUpperCase(eingabe.charAt(0));
@@ -80,7 +78,7 @@ public class SchiffeVersenken {
 
 			// validen wert für reihe erzwingen
 			while (!richtigeReihe(reihe)) {
-				System.out.println("Ungültige Eingabe für Reihe!");
+				System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Reihe!");
 				System.out.print("Bitte erneut eingeben (0-9): ");
 				eingabe = reader.readLine();
 				reihe = Character.toUpperCase(eingabe.charAt(0));
@@ -95,7 +93,7 @@ public class SchiffeVersenken {
 
 			// validen wert für spalte erzwingen
 			while (!richtigeSpalte(spalte)) {
-				System.out.println("Ungültige Eingabe für Spalte!");
+				System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Spalte!");
 				System.out.print("Bitte erneut eingeben (A-J): ");
 				eingabe = reader.readLine();
 				spalte = Character.toUpperCase(eingabe.charAt(0));
@@ -105,8 +103,16 @@ public class SchiffeVersenken {
 			// sichergehen, dass Schiff nicht außerhalb des spielfelds geht
 			// sichergehen, dass Schiff nicht mit anderen Schiffen überlappt
 
-			// spielfeld[][] aktuelles schiff hinzufügen
-			schiffHinzufuegen(spielfeld, richtung, reihe, spalte, laenge);
+			if (!schiffAußerhalb(richtung, reihe, spalte, spielfeld, laenge)) {
+				// spielfeld[][] aktuelles schiff hinzufügen
+				System.out.println("g");
+				schiffHinzufuegen(spielfeld, richtung, reihe, spalte, laenge);
+			} else {
+				System.out.println();
+				System.err.println("Schiff liegt außerhalb des Spielfelds");
+				System.err.println("Shutting down system");
+				System.exit(-1);
+			}
 
 			// FORAMT
 			System.out.println();
@@ -166,5 +172,30 @@ public class SchiffeVersenken {
 			return false;
 		}
 		return true;
+	}
+
+	// testen ob schiff außerhalb des spielfeld ist
+	private static boolean schiffAußerhalb(char richtung, char reihe, char spalte, char[][] spielfeld, int laenge) {
+		int posX = spalte - 'A';
+		int posY = reihe - '0';
+
+		final byte[][] temp = new byte[10][10];
+		
+		try {
+			if (richtung == 'H') {
+				for (int i = 0; i < laenge; i++) {
+					temp[posX][posY] = 0;
+					posX++;
+				}
+			} else if (richtung == 'V') {
+				for (int i = 0; i < laenge; i++) {
+					temp[posX][posY] = 1;
+					posY++;
+				}
+			}
+			return false;
+		} catch (Exception e) {
+			return true;
+		}
 	}
 }
