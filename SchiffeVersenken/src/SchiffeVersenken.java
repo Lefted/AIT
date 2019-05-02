@@ -46,79 +46,82 @@ public class SchiffeVersenken {
 	// aufgabe 3
 	// spieler schiffer platzieren lassen
 	private static void schiffeEinlesen(char[][] spielfeld, BufferedReader reader) throws IOException {
+		// falls die eingabe ungültig war soll sie wiederholt werden
+		boolean wiederholen = false;
+
+		// länge des schiffe setzen
+		final int[] laengen = { 2, 3, 3, 4, 5 };
+
+		// für alle 5 schiffe
 		for (int i = 0; i < 5; i++) {
-			// länge des schiffe setzen
-			int[] laengen = { 2, 3, 3, 4, 5 };
-			int laenge = laengen[i];
+			// laenge des aktuellen schiffs festlegen
+			final int laenge = laengen[i];
 
-			// FORMAT
-			System.out.println();
-
-			// RICHTUNG
-			System.out.print("In welcher Richtung soll das " + (i + 1) + ".Schiff (Länge = " + laenge
-					+ ") platziert werden? (H)orizontal/(V)ertikal: ");
-			String eingabe = reader.readLine();
-			// in großbuchstaben umwandeln
-			char richtung = Character.toUpperCase(eingabe.charAt(0));
-
-			// validen wert für richtung erzwingen
-			while (!richtigeRichtung(richtung)) {
-				System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Richtung!");
-				System.out.print("Bitte erneut eingeben (H/V): ");
-				eingabe = reader.readLine();
-				richtung = Character.toUpperCase(eingabe.charAt(0));
-			}
-
-			// REIHE
-			System.out.print("In welcher Reihe soll der Anfang des " + (i + 1) + ".Schiffs (Länge = " + laenge
-					+ ") platziert werden? (0-9): ");
-			eingabe = reader.readLine();
-			// in großbuchstaben umwandeln
-			char reihe = Character.toUpperCase(eingabe.charAt(0));
-
-			// validen wert für reihe erzwingen
-			while (!richtigeReihe(reihe)) {
-				System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Reihe!");
-				System.out.print("Bitte erneut eingeben (0-9): ");
-				eingabe = reader.readLine();
-				reihe = Character.toUpperCase(eingabe.charAt(0));
-			}
-
-			// SPALTE
-			System.out.print("In welcher Spalte soll der Anfang des " + (i + 1) + ". Schiffs (Länge = " + laenge
-					+ ") platziert werden? (A-J): ");
-			eingabe = reader.readLine();
-			// in großbuchstaben umwandeln
-			char spalte = Character.toUpperCase(eingabe.charAt(0));
-
-			// validen wert für spalte erzwingen
-			while (!richtigeSpalte(spalte)) {
-				System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Spalte!");
-				System.out.print("Bitte erneut eingeben (A-J): ");
-				eingabe = reader.readLine();
-				spalte = Character.toUpperCase(eingabe.charAt(0));
-			}
-
-			// TODO
-			// sichergehen, dass Schiff nicht außerhalb des spielfelds geht
-			// sichergehen, dass Schiff nicht mit anderen Schiffen überlappt
-
-			if (!schiffAußerhalb(richtung, reihe, spalte, spielfeld, laenge)) {
-				// spielfeld[][] aktuelles schiff hinzufügen
-				System.out.println("g");
-				schiffHinzufuegen(spielfeld, richtung, reihe, spalte, laenge);
-			} else {
+			do {
+				// FORMAT
 				System.out.println();
-				System.err.println("Schiff liegt außerhalb des Spielfelds");
-				System.err.println("Shutting down system");
-				System.exit(-1);
-			}
 
-			// FORAMT
-			System.out.println();
+				// RICHTUNG
+				System.out.print(
+						"In welcher Richtung soll das " + (i + 1) + ".Schiff (Länge = " + laenge + ") platziert werden? (H)orizontal/(V)ertikal: ");
+				String eingabe = reader.readLine();
+				// in großbuchstaben umwandeln
+				char richtung = Character.toUpperCase(eingabe.charAt(0));
 
-			// nach jeder eingabe spielfeld aktualisieren
-			spielfeldAusgeben(spielfeld);
+				// validen wert für richtung erzwingen
+				while (!richtigeRichtung(richtung)) {
+					System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Richtung!");
+					System.out.print("Bitte erneut eingeben (H/V): ");
+					eingabe = reader.readLine();
+					richtung = Character.toUpperCase(eingabe.charAt(0));
+				}
+
+				// REIHE
+				System.out.print("In welcher Reihe soll der Anfang des " + (i + 1) + ".Schiffs (Länge = " + laenge + ") platziert werden? (0-9): ");
+				eingabe = reader.readLine();
+				// in großbuchstaben umwandeln
+				char reihe = Character.toUpperCase(eingabe.charAt(0));
+
+				// validen wert für reihe erzwingen
+				while (!richtigeReihe(reihe)) {
+					System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Reihe!");
+					System.out.print("Bitte erneut eingeben (0-9): ");
+					eingabe = reader.readLine();
+					reihe = Character.toUpperCase(eingabe.charAt(0));
+				}
+
+				// SPALTE
+				System.out.print("In welcher Spalte soll der Anfang des " + (i + 1) + ". Schiffs (Länge = " + laenge + ") platziert werden? (A-J): ");
+				eingabe = reader.readLine();
+				// in großbuchstaben umwandeln
+				char spalte = Character.toUpperCase(eingabe.charAt(0));
+
+				// validen wert für spalte erzwingen
+				while (!richtigeSpalte(spalte)) {
+					System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Spalte!");
+					System.out.print("Bitte erneut eingeben (A-J): ");
+					eingabe = reader.readLine();
+					spalte = Character.toUpperCase(eingabe.charAt(0));
+				}
+
+				// TODO
+				// sichergehen, dass Schiff nicht mit anderen Schiffen überlappt
+
+				if (schiffAußerhalb(richtung, reihe, spalte, spielfeld, laenge)) {
+					System.out.println();
+					System.out.println("Schiff liegt außerhalb des Spielfelds!");
+					System.out.println("Bitte erneut eingeben.");
+					wiederholen = true;
+				} else {
+					// schiff muss nicht erneut eingegeben werden
+					wiederholen = false;
+					// spielfeld[][] aktuelles schiff hinzufügen
+					schiffHinzufuegen(spielfeld, richtung, reihe, spalte, laenge);
+
+					// nach jeder eingabe spielfeld aktualisieren
+					spielfeldAusgeben(spielfeld);
+				}
+			} while (wiederholen == true);
 		}
 
 	}
@@ -178,7 +181,7 @@ public class SchiffeVersenken {
 	private static boolean schiffAußerhalb(char richtung, char reihe, char spalte, char[][] spielfeld, int laenge) {
 		int posX = spalte - 'A';
 		int posY = reihe - '0';
-		
+
 		if (richtung == 'H') {
 			// potentielle positionen durchgehen
 			for (int i = 0; i < laenge; i++) {
