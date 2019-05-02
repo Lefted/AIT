@@ -104,6 +104,8 @@ public class SchiffeVersenken {
 					spalte = Character.toUpperCase(eingabe.charAt(0));
 				}
 
+				final int schiffBerührtIndex = schiffBeruehrt(richtung, reihe, spalte, spielfeld, laenge);
+				
 				// sichergehen, dass schiff nicht außerhalb des spielfelds liegt
 				if (schiffAußerhalb(richtung, reihe, spalte, spielfeld, laenge)) {
 					System.out.println();
@@ -117,6 +119,17 @@ public class SchiffeVersenken {
 					System.out.println("Schiff kann nicht an Position gesetzt werden, wo bereits ein Schiff liegt!");
 					System.out.println("Bitte erneut eingeben.");
 					wiederholen = true;
+				} else if (schiffBerührtIndex != 0) {
+					System.out.println();
+					switch (schiffBerührtIndex) {
+					case 1:
+						System.out.println("Schiff kann nicht mit anderem Schiff über Ecke gesetzt!");
+						break;
+					case 2:
+						System.out.println("Schiff berührt anderes Schiff!");
+						break;
+					}
+					wiederholen = true;
 				} else {
 					// schiff muss nicht erneut eingegeben werden
 					wiederholen = false;
@@ -127,8 +140,9 @@ public class SchiffeVersenken {
 					spielfeldAusgeben(spielfeld);
 				}
 			} while (wiederholen == true);
+			// FORMAT
+			System.out.println();
 		}
-
 	}
 
 	// spielfeld neue schiffe hinzufügen
@@ -182,13 +196,40 @@ public class SchiffeVersenken {
 		return true;
 	}
 
+	// testen ob schiff außerhalb des spielfeld ist
+	private static boolean schiffAußerhalb(char richtung, char reihe, char spalte, char[][] spielfeld, int laenge) {
+		int posX = spalte - 'A';
+		int posY = reihe - '0';
+
+		boolean ergebnis = false;
+
+		if (richtung == 'H') {
+			// potentielle positionen durchgehen bis auf schiffanfang
+			for (int i = 1; i < laenge; i++) {
+				posX++;
+				// testen ob außerhalb des bereichs
+				ergebnis = (posX >= spielfeld.length) ? true : ergebnis;
+				if (ergebnis) {
+				}
+			}
+		} else if (richtung == 'V') {
+			// potentielle positionen durchgehen bis auf schiffanfang
+			for (int i = 1; i < laenge; i++) {
+				posY++;
+				// testen ob außerhalb des bereichs
+				ergebnis = (posY >= spielfeld[0].length) ? true : ergebnis;
+			}
+		}
+		return ergebnis;
+	}
+
 	// testen, ob feld frei
 	private static boolean schiffUeberlappt(char richtung, char reihe, char spalte, char[][] spielfeld, int laenge) {
 		int posX = spalte - 'A';
 		int posY = reihe - '0';
-		
+
 		boolean ergebnis = false;
-		
+
 		if (richtung == 'H') {
 			// potentielle positionen durchgehen
 			for (int i = 0; i < laenge; i++) {
@@ -206,29 +247,73 @@ public class SchiffeVersenken {
 		}
 		return ergebnis;
 	}
-	
-	// testen ob schiff außerhalb des spielfeld ist
-	private static boolean schiffAußerhalb(char richtung, char reihe, char spalte, char[][] spielfeld, int laenge) {
+
+	// testen, ob schiff über eck oder an anderes schiff gesetzt wurde
+	private static int schiffBeruehrt(char richtung, char reihe, char spalte, char[][] spielfeld, int laenge) {
+		System.out.println("Aufgerufen!");
+		// keine berühungen
+		int ergebnis = 0;
+		
 		int posX = spalte - 'A';
 		int posY = reihe - '0';
-
-		boolean ergebnis = false;
 		
 		if (richtung == 'H') {
-			// potentielle positionen durchgehen bis auf schiffanfang
-			for (int i = 1; i < laenge; i++) {
-				posX++;
-				// testen ob außerhalb des bereichs
-				ergebnis = (posX >= spielfeld.length) ? true : ergebnis;
-				if (ergebnis) {
+			// startpositionen verschieben
+			posX--;
+			posY--;
+			int startPosX = posX;
+			
+			// potentielle positionen durchgehen außer es wurde bereits ein fehler gefunden
+			for (int i = 0; (i < 3) && (ergebnis == 0); i++) {
+				for (int j = 0; (j < (laenge + 2)) && (ergebnis == 0); j++) {
+					// sichergehen, dass positionen im spielfeld sind
+					if ((posX > 0) && (posX < spielfeld.length) && (posY > 0) && (posY < spielfeld.length)) {
+						// auf überlappungen testen
+						if (spielfeld[posX][posY] != '.') {
+							// testen, ob überlappung bei ecke war
+							if (((i == 0) && (j == 0)) || ((i == 0) && (j == (laenge + 1))) || ((i == 2) && (j == 0)) ||
+									((i == 2) && (j == (laenge + 1)))) {
+								// schiff ist über ecke platziert
+								ergebnis = 1;
+							} else {
+								// schiff berührt anderes an kante
+								ergebnis = 2;
+							}
+						}
+						posX++;
+					}
 				}
+				posY++;
+				posX = startPosX;
 			}
 		} else if (richtung == 'V') {
-			// potentielle positionen durchgehen bis auf schiffanfang
-			for (int i = 1; i < laenge; i++) {
+			// startpositionen verschieben
+			posX--;
+			posY--;
+			int startPosX = posX;
+			
+			// potentielle positionen durchgehen außer es wurde bereits ein fehler gefunden
+			for (int i = 0; (i < (laenge + 2)) && (ergebnis == 0); i++) {
+				for (int j = 0; (j < 3) && (ergebnis == 0); j++) {
+					// sichergehen, dass positionen im spielfeld sind
+					if ((posX > 0) && (posX < spielfeld.length) && (posY > 0) && (posY < spielfeld.length)) {
+						// auf überlappung testen
+						if (spielfeld[posX][posY] != '.') {
+							// testen, ob überlappung bei ecke war
+							if (((i == 0) && (j == 0)) || ((i == 0) && (j == 2)) || ((i == (laenge + 1)) && (j == 0))
+									|| ((i == (laenge + 1)) && (j == 2))) {
+								// schiff ist über ecke platziert
+								ergebnis = 1;
+							} else {
+								// schiff berührt anderes an kante
+								ergebnis = 2;
+							}
+						}
+						posX++;
+					}
+				}
 				posY++;
-				// testen ob außerhalb des bereichs
-				ergebnis = (posY >= spielfeld[0].length) ? true : ergebnis;
+				posX = startPosX;
 			}
 		}
 		return ergebnis;
