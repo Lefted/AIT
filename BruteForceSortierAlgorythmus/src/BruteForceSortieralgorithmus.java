@@ -48,6 +48,14 @@ public class BruteForceSortieralgorithmus {
 				final int defaultInt[] = {1, 3, 12, 9, 420, 69, 31, 666};
 				return defaultInt;
 			}
+			if (eingabe.equalsIgnoreCase("d10")) {
+				final int defaultInt[] = {1, 3, 12, 9, 420, 69, 31, 666, 187, 42};
+				return defaultInt;
+			}
+			if (eingabe.equalsIgnoreCase("d9")) {
+				final int defaultInt[] = {1, 3, 12, 9, 420, 69, 31, 666, 31};
+				return defaultInt;
+			}
 			System.out.println("Bitte gehen Sie gültige Werte ein!");
 		}
 		return array;
