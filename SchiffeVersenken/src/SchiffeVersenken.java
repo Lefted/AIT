@@ -1,6 +1,10 @@
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 public class SchiffeVersenken {
 
@@ -10,11 +14,110 @@ public class SchiffeVersenken {
 		// spielfeld[x][y]
 		char[][] spielfeld = spielfeldInitalisieren();
 
-		spielfeldAusgeben(spielfeld);
+		// spielmodus auswahlscreen ausgeben
+		spielmodiWahlAusgeben();
+		// spielmodus wählen
+		final boolean multiplayer = spielmodusEinlesen(reader);
+
+		if (multiplayer == false) {
+			manageSingleplayer(reader, spielfeld);
+		} else {
+			manageMultiplayer(reader, spielfeld);
+		}
 
 		// aufgabe 3
-		// 5x : einlesen, �berpr�fen, schiff hinzuf�gen, feld ausgeben
+		// 5x : einlesen, überprüfen, schiff hinzufügen, feld ausgeben
+		//		schiffeEinlesen(spielfeld, reader);
+	}
+
+	// code für den singleplayer
+	private static void manageSingleplayer(BufferedReader reader, char[][] spielfeld) throws IOException {
+		clear();
 		schiffeEinlesen(spielfeld, reader);
+
+	}
+
+	// code für den multipalyer
+	private static void manageMultiplayer(BufferedReader reader, char[][] spielfeld) throws IOException {
+
+		final String ip = "";
+		final int port = 1201;
+		final boolean istServer = netzwerktypEinlesen(reader);
+
+		ServerSocket serverSocket = null;
+		Socket socket;
+		
+		if (istServer) {
+			serverSocket = new ServerSocket(port);
+			socket = serverSocket.accept();
+		} else {
+			socket = verbindeZuServer(reader, ip, port);
+		}
+		
+
+		DataInputStream dataIn = new DataInputStream(socket.getInputStream());
+		DataOutputStream dataOut = new DataOutputStream(socket.getOutputStream());
+
+		String msgI = "";
+		String msgOut;
+
+	}
+
+	// verbinde den client zum server
+	private static Socket verbindeZuServer(BufferedReader reader, String ip, int port) {
+		boolean fehler = false;
+		Socket socket = new Socket();
+		do {
+			try {
+				// verbindungsfehler
+				if (fehler) {
+					System.out.println("Konnte nicht zum Server verbinden, bitte überprüfen Sie die IP!");
+				}
+				
+				System.out.print("Zu welcher IP soll verbunden werden? (Bsp. 127.0.0.1): ");
+				final String eingabe = reader.readLine();
+				
+				socket = new Socket(eingabe, port);
+			} catch (Exception e) {
+				fehler = true;
+			}
+		} while (fehler);
+		return socket;
+	}
+	
+	// einstellungen für den server/client festlegen
+	private static boolean netzwerktypEinlesen(BufferedReader reader) throws IOException {
+		int fehlerCode = 0;
+		boolean server = false;
+		do {
+			// falls fehler auftreten diese ausgeben
+			if (fehlerCode == 1) {
+				System.out.println("Bitte tätigen Sie eine gültige Eingabe (S/C)!");
+			}
+
+			System.out.print("Möchtest du Server oder Client sein? (S/C): ");
+			String eingabe = reader.readLine();
+			if (Character.toUpperCase(eingabe.charAt(0)) == 'S') {
+				server = true;
+				fehlerCode = 0;
+			} else if (Character.toUpperCase(eingabe.charAt(0)) == 'C') {
+				server = false;
+				fehlerCode = 0;
+			} else {
+				fehlerCode = 1;
+			}
+
+		} while (fehlerCode != 0);
+		return server;
+	}
+
+	// konsole clearen (mit \n vollspamen)
+	private static void clear() {
+		StringBuffer buffer = new StringBuffer();
+		for (int i = 0; i < 50; i++) {
+			buffer.append("\n");
+		}
+		System.out.println(buffer);
 	}
 
 	// spielfeld mit '.' initialisieren
@@ -27,6 +130,112 @@ public class SchiffeVersenken {
 			}
 		}
 		return spielfeld;
+	}
+
+	// nutzer gibt an welcher spielmodus gespielt wird
+	private static boolean spielmodusEinlesen(BufferedReader reader) {
+		boolean multiplayer = false;
+		boolean fehler = false;
+		do {
+			if (fehler) {
+				System.out.println("Bitte tätigen Sie eine gültige Eingabe (S/M)!");
+			}
+			System.out.print("Bitte wählen Sie einen Spielmodus: ");
+			try {
+				String eingabe = reader.readLine();
+				if (Character.toUpperCase(eingabe.charAt(0)) == 'M') {
+					multiplayer = true;
+					fehler = false;
+				} else if (Character.toUpperCase(eingabe.charAt(0)) == 'S') {
+					multiplayer = false;
+					fehler = false;
+				} else {
+					fehler = true;
+				}
+			} catch (IOException e) {
+				fehler = true;
+			}
+
+		} while (fehler);
+		return multiplayer;
+	}
+
+	// spielmodi in der konsole ausgeben
+	private static void spielmodiWahlAusgeben() {
+		StringBuffer buffer = new StringBuffer();
+		for (int i = 0; i < 19; i++) {
+			for (int j = 0; j < 49; j++) {
+
+				// erste linie
+				if (i == 0) {
+					switch (j) {
+					case 0:
+						buffer.append("╔");
+						break;
+					case 48:
+						buffer.append("╗");
+						break;
+					default:
+						buffer.append("═");
+						break;
+					}
+				}
+				// links und rechts
+				if ((i > 0) && (i < 18)) {
+					if ((j == 15) && (i == 3)) {
+						buffer.append("sᴄʜɪғғᴇ ᴠᴇʀsᴇɴᴋᴇɴ");
+					} else if ((j == 15) && (i == 7)) {
+						buffer.append("sɪɴɢʟᴇᴘʟᴀʏᴇʀ  (s)");
+					} else if ((j == 15) && (i == 10)) {
+						buffer.append("ᴍᴜʟᴛɪᴘʟᴀʏᴇʀ   (ᴍ)");
+					} else if ((j == 39) && (i == 17)) {
+						buffer.append("von Moritz");
+					}
+
+					else if (j == 0) {
+						buffer.append("║");
+					} else if (j == 48) {
+						buffer.append("║");
+					} else if (i == 3) {
+						if (((j > 0) && (j < 13)) || (j < 32)) {
+							buffer.append(" ");
+						}
+					} else if (i == 7) {
+						if (((j > 0) && (j < 15)) || (j < 32)) {
+							buffer.append(" ");
+						}
+					} else if (i == 10) {
+						if (((j > 0) && (j < 15)) || (j < 32)) {
+							buffer.append(" ");
+						}
+					} else if (i == 17) {
+						if (j < 38) {
+							buffer.append(" ");
+						}
+					} else {
+						buffer.append(" ");
+					}
+				}
+				// unten
+				if (i == 18) {
+					switch (j) {
+					case 0:
+						buffer.append("╚");
+						break;
+					case 48:
+						buffer.append("╝");
+						break;
+					default:
+						buffer.append("═");
+						break;
+					}
+				}
+
+			}
+			buffer.append("\n");
+		}
+
+		System.out.println(buffer);
 	}
 
 	// spielfeld in der konsole ausgeben
@@ -46,13 +255,15 @@ public class SchiffeVersenken {
 	// aufgabe 3
 	// spieler schiffer platzieren lassen
 	private static void schiffeEinlesen(char[][] spielfeld, BufferedReader reader) throws IOException {
-		// falls die eingabe ung�ltig war soll sie wiederholt werden
+		// falls die eingabe ungültig war soll sie wiederholt werden
 		boolean wiederholen = false;
 
-		// l�nge des schiffe setzen
+		// länge des schiffe setzen
 		final int[] laengen = { 2, 3, 3, 4, 5 };
 
-		// f�r alle 5 schiffe
+		spielfeldAusgeben(spielfeld);
+
+		// für alle 5 schiffe
 		for (int i = 0; i < 5; i++) {
 			// laenge des aktuellen schiffs festlegen
 			final int laenge = laengen[i];
@@ -63,77 +274,77 @@ public class SchiffeVersenken {
 
 				// RICHTUNG
 				System.out.print(
-						"In welcher Richtung soll das " + (i + 1) + ".Schiff (L�nge = " + laenge + ") platziert werden? (H)orizontal/(V)ertikal: ");
+						"In welcher Richtung soll das " + (i + 1) + ".Schiff (Länge = " + laenge + ") platziert werden? (H)orizontal/(V)ertikal: ");
 				String eingabe = reader.readLine();
-				// in gro�buchstaben umwandeln
+				// in großbuchstaben umwandeln
 				char richtung = Character.toUpperCase(eingabe.charAt(0));
 
-				// validen wert f�r richtung erzwingen
+				// validen wert für richtung erzwingen
 				while (!richtigeRichtung(richtung)) {
-					System.out.println("\"" + eingabe + "\"" + " ist keine g�ltige Eingabe f�r Richtung!");
+					System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Richtung!");
 					System.out.print("Bitte erneut eingeben (H/V): ");
 					eingabe = reader.readLine();
 					richtung = Character.toUpperCase(eingabe.charAt(0));
 				}
 
 				// REIHE
-				System.out.print("In welcher Reihe soll der Anfang des " + (i + 1) + ".Schiffs (L�nge = " + laenge + ") platziert werden? (0-9): ");
+				System.out.print("In welcher Reihe soll der Anfang des " + (i + 1) + ".Schiffs (Länge = " + laenge + ") platziert werden? (0-9): ");
 				eingabe = reader.readLine();
-				// in gro�buchstaben umwandeln
+				// in großbuchstaben umwandeln
 				char reihe = Character.toUpperCase(eingabe.charAt(0));
 
-				// validen wert f�r reihe erzwingen
+				// validen wert für reihe erzwingen
 				while (!richtigeReihe(reihe)) {
-					System.out.println("\"" + eingabe + "\"" + " ist keine g�ltige Eingabe f�r Reihe!");
+					System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Reihe!");
 					System.out.print("Bitte erneut eingeben (0-9): ");
 					eingabe = reader.readLine();
 					reihe = Character.toUpperCase(eingabe.charAt(0));
 				}
 
 				// SPALTE
-				System.out.print("In welcher Spalte soll der Anfang des " + (i + 1) + ". Schiffs (L�nge = " + laenge + ") platziert werden? (A-J): ");
+				System.out.print("In welcher Spalte soll der Anfang des " + (i + 1) + ". Schiffs (Länge = " + laenge + ") platziert werden? (A-J): ");
 				eingabe = reader.readLine();
-				// in gro�buchstaben umwandeln
+				// in großbuchstaben umwandeln
 				char spalte = Character.toUpperCase(eingabe.charAt(0));
 
-				// validen wert f�r spalte erzwingen
+				// validen wert für spalte erzwingen
 				while (!richtigeSpalte(spalte)) {
-					System.out.println("\"" + eingabe + "\"" + " ist keine g�ltige Eingabe f�r Spalte!");
+					System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Spalte!");
 					System.out.print("Bitte erneut eingeben (A-J): ");
 					eingabe = reader.readLine();
 					spalte = Character.toUpperCase(eingabe.charAt(0));
 				}
 
-				final int schiffBer�hrtIndex = schiffBeruehrt(richtung, reihe, spalte, spielfeld, laenge);
-				
-				// sichergehen, dass schiff nicht au�erhalb des spielfelds liegt
-				if (schiffAu�erhalb(richtung, reihe, spalte, spielfeld, laenge)) {
+				final int schiffBerührtIndex = schiffBeruehrt(richtung, reihe, spalte, spielfeld, laenge);
+
+				// sichergehen, dass schiff nicht außerhalb des spielfelds liegt
+				if (schiffAußerhalb(richtung, reihe, spalte, spielfeld, laenge)) {
 					System.out.println();
-					System.out.println("Schiff liegt au�erhalb des Spielfelds!");
+					System.out.println("Schiff liegt außerhalb des Spielfelds!");
 					System.out.println("Bitte erneut eingeben.");
 					wiederholen = true;
 				}
-				// sichergehen, dass schiff nicht mit anderem �berlappt
+				// sichergehen, dass schiff nicht mit anderem überlappt
 				else if (schiffUeberlappt(richtung, reihe, spalte, spielfeld, laenge)) {
 					System.out.println();
 					System.out.println("Schiff kann nicht an Position gesetzt werden, wo bereits ein Schiff liegt!");
 					System.out.println("Bitte erneut eingeben.");
 					wiederholen = true;
-				} else if (schiffBer�hrtIndex != 0) {
+				} else if (schiffBerührtIndex != 0) {
 					System.out.println();
-					switch (schiffBer�hrtIndex) {
+					switch (schiffBerührtIndex) {
 					case 1:
-						System.out.println("Schiff kann nicht mit anderem Schiff �ber Ecke gesetzt!");
+						System.out.println("Schiff kann nicht mit anderem Schiff über Ecke gesetzt!");
 						break;
 					case 2:
-						System.out.println("Schiff ber�hrt anderes Schiff!");
+						System.out.println("Schiff berührt anderes Schiff!");
 						break;
 					}
 					wiederholen = true;
 				} else {
 					// schiff muss nicht erneut eingegeben werden
 					wiederholen = false;
-					// spielfeld[][] aktuelles schiff hinzuf�gen
+					// spielfeld[][] aktuelles schiff hinzufügen
 					schiffHinzufuegen(spielfeld, richtung, reihe, spalte, laenge);
 
 					// nach jeder eingabe spielfeld aktualisieren
@@ -145,7 +356,7 @@ public class SchiffeVersenken {
 		}
 	}
 
-	// spielfeld neue schiffe hinzuf�gen
+	// spielfeld neue schiffe hinzufügen
 	private static void schiffHinzufuegen(char[][] spielfeld, char richtung, char reihe, char spalte, int laenge) {
 		// spalte/reihe in koordinaten umwandeln
 		int posX = spalte - 'A';
@@ -196,8 +407,8 @@ public class SchiffeVersenken {
 		return true;
 	}
 
-	// testen ob schiff au�erhalb des spielfeld ist
-	private static boolean schiffAu�erhalb(char richtung, char reihe, char spalte, char[][] spielfeld, int laenge) {
+	// testen ob schiff außerhalb des spielfeld ist
+	private static boolean schiffAußerhalb(char richtung, char reihe, char spalte, char[][] spielfeld, int laenge) {
 		int posX = spalte - 'A';
 		int posY = reihe - '0';
 
@@ -207,7 +418,7 @@ public class SchiffeVersenken {
 			// potentielle positionen durchgehen bis auf schiffanfang
 			for (int i = 1; i < laenge; i++) {
 				posX++;
-				// testen ob au�erhalb des bereichs
+				// testen ob außerhalb des bereichs
 				ergebnis = (posX >= spielfeld.length) ? true : ergebnis;
 				if (ergebnis) {
 				}
@@ -216,7 +427,7 @@ public class SchiffeVersenken {
 			// potentielle positionen durchgehen bis auf schiffanfang
 			for (int i = 1; i < laenge; i++) {
 				posY++;
-				// testen ob au�erhalb des bereichs
+				// testen ob außerhalb des bereichs
 				ergebnis = (posY >= spielfeld[0].length) ? true : ergebnis;
 			}
 		}
@@ -248,35 +459,35 @@ public class SchiffeVersenken {
 		return ergebnis;
 	}
 
-	// testen, ob schiff �ber eck oder an anderes schiff gesetzt wurde
+	// testen, ob schiff über eck oder an anderes schiff gesetzt wurde
 	private static int schiffBeruehrt(char richtung, char reihe, char spalte, char[][] spielfeld, int laenge) {
 		System.out.println("Aufgerufen!");
-		// keine ber�hungen
+		// keine berühungen
 		int ergebnis = 0;
-		
+
 		int posX = spalte - 'A';
 		int posY = reihe - '0';
-		
+
 		if (richtung == 'H') {
 			// startpositionen verschieben
 			posX--;
 			posY--;
 			int startPosX = posX;
-			
-			// potentielle positionen durchgehen au�er es wurde bereits ein fehler gefunden
+
+			// potentielle positionen durchgehen außer es wurde bereits ein fehler gefunden
 			for (int i = 0; (i < 3) && (ergebnis == 0); i++) {
 				for (int j = 0; (j < (laenge + 2)) && (ergebnis == 0); j++) {
 					// sichergehen, dass positionen im spielfeld sind
 					if ((posX > 0) && (posX < spielfeld.length) && (posY > 0) && (posY < spielfeld.length)) {
-						// auf �berlappungen testen
+						// auf überlappungen testen
 						if (spielfeld[posX][posY] != '.') {
-							// testen, ob �berlappung bei ecke war
-							if (((i == 0) && (j == 0)) || ((i == 0) && (j == (laenge + 1))) || ((i == 2) && (j == 0)) ||
-									((i == 2) && (j == (laenge + 1)))) {
-								// schiff ist �ber ecke platziert
+							// testen, ob überlappung bei ecke war
+							if (((i == 0) && (j == 0)) || ((i == 0) && (j == (laenge + 1))) || ((i == 2) && (j == 0))
+									|| ((i == 2) && (j == (laenge + 1)))) {
+								// schiff ist über ecke platziert
 								ergebnis = 1;
 							} else {
-								// schiff ber�hrt anderes an kante
+								// schiff berührt anderes an kante
 								ergebnis = 2;
 							}
 						}
@@ -291,21 +502,21 @@ public class SchiffeVersenken {
 			posX--;
 			posY--;
 			int startPosX = posX;
-			
-			// potentielle positionen durchgehen au�er es wurde bereits ein fehler gefunden
+
+			// potentielle positionen durchgehen außer es wurde bereits ein fehler gefunden
 			for (int i = 0; (i < (laenge + 2)) && (ergebnis == 0); i++) {
 				for (int j = 0; (j < 3) && (ergebnis == 0); j++) {
 					// sichergehen, dass positionen im spielfeld sind
 					if ((posX > 0) && (posX < spielfeld.length) && (posY > 0) && (posY < spielfeld.length)) {
-						// auf �berlappung testen
+						// auf überlappung testen
 						if (spielfeld[posX][posY] != '.') {
-							// testen, ob �berlappung bei ecke war
+							// testen, ob überlappung bei ecke war
 							if (((i == 0) && (j == 0)) || ((i == 0) && (j == 2)) || ((i == (laenge + 1)) && (j == 0))
 									|| ((i == (laenge + 1)) && (j == 2))) {
-								// schiff ist �ber ecke platziert
+								// schiff ist über ecke platziert
 								ergebnis = 1;
 							} else {
-								// schiff ber�hrt anderes an kante
+								// schiff berührt anderes an kante
 								ergebnis = 2;
 							}
 						}
