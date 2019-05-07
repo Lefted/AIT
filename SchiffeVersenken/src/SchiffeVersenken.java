@@ -48,8 +48,10 @@ public class SchiffeVersenken {
 		Socket socket;
 		
 		if (istServer) {
+			System.out.println("Versuche Server zu starten");
 			serverSocket = new ServerSocket(port);
 			socket = serverSocket.accept();
+			System.out.println("Server gestartet!");
 		} else {
 			socket = verbindeZuServer(reader, ip, port);
 		}
@@ -58,9 +60,33 @@ public class SchiffeVersenken {
 		DataInputStream dataIn = new DataInputStream(socket.getInputStream());
 		DataOutputStream dataOut = new DataOutputStream(socket.getOutputStream());
 
-		String msgI = "";
-		String msgOut;
+		String msgIn = "";
+		String msgOut = "";
 
+		// TESTS
+		if (istServer) {
+			while (msgIn != "end") {
+				msgIn = dataIn.readUTF();
+				System.out.println(msgIn);
+				
+				msgOut = reader.readLine();
+				dataOut.writeUTF(msgOut);
+				dataOut.flush();
+			}
+			socket.close();
+		}
+		
+		if (!istServer) {
+			while (msgIn != "end") {
+				msgOut = reader.readLine();
+				dataOut.writeUTF(msgOut);
+//				dataOut.flush();
+				
+				msgIn = dataIn.readUTF();
+				System.out.println(msgIn);  //print server msg
+			}
+		}
+		
 	}
 
 	// verbinde den client zum server
