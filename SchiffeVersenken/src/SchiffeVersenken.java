@@ -8,6 +8,7 @@ import java.net.Socket;
 
 public class SchiffeVersenken {
 
+	// main method
 	public static void main(String[] args) throws IOException {
 		// VARIABLEN
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
