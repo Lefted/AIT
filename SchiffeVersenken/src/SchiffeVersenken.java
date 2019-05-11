@@ -3,115 +3,119 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class SchiffeVersenken {
 
-	// main method
+	// main
 	public static void main(String[] args) throws IOException {
 		// VARIABLEN
-		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		// spielfeld[x][y]
 		char[][] spielfeld = spielfeldInitalisieren();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		final boolean multiplayer;
 
-		// spielmodus auswahlscreen ausgeben
 		spielmodiWahlAusgeben();
-		// spielmodus wählen
-		final boolean multiplayer = spielmodusEinlesen(reader);
+		multiplayer = spielmodusEinlesen(reader);
 
 		if (multiplayer == false) {
-			manageSingleplayer(reader, spielfeld);
+			singleplayer(reader, spielfeld);
 		} else {
-			manageMultiplayer(reader, spielfeld);
+			multiplayer(reader, spielfeld);
 		}
-
-		// aufgabe 3
-		// 5x : einlesen, überprüfen, schiff hinzufügen, feld ausgeben
-		//		schiffeEinlesen(spielfeld, reader);
 	}
 
-	// code für den singleplayer
-	private static void manageSingleplayer(BufferedReader reader, char[][] spielfeld) throws IOException {
-		clear();
+	// code für den singleplayer-verlauf
+	private static void singleplayer(BufferedReader reader, char[][] spielfeld) throws IOException {
+		konsoleLeeren();
 		schiffeEinlesen(spielfeld, reader);
 
 	}
 
-	// code für den multipalyer
-	private static void manageMultiplayer(BufferedReader reader, char[][] spielfeld) throws IOException {
-
+	// code für den multipalyer-verlauf
+	@SuppressWarnings("resource")
+	private static void multiplayer(BufferedReader reader, char[][] spielfeld) throws IOException {
+		// VARIABLEN
 		final String ip = "";
 		final int port = 1201;
 		final boolean istServer = netzwerktypEinlesen(reader);
 
 		ServerSocket serverSocket = null;
 		Socket socket;
-		
-		if (istServer) {
-			System.out.println("Versuche Server zu starten");
-			serverSocket = new ServerSocket(port);
-			socket = serverSocket.accept();
-			System.out.println("Server gestartet!");
-		} else {
-			socket = verbindeZuServer(reader, ip, port);
-		}
-		
-
-		DataInputStream dataIn = new DataInputStream(socket.getInputStream());
-		DataOutputStream dataOut = new DataOutputStream(socket.getOutputStream());
-
+		DataInputStream dataIn;
+		DataOutputStream dataOut;
 		String msgIn = "";
-		String msgOut = "";
 
-		// TESTS
-		if (istServer) {
-			while (msgIn != "end") {
-				msgIn = dataIn.readUTF();
-				System.out.println(msgIn);
-				
-				msgOut = reader.readLine();
-				dataOut.writeUTF(msgOut);
-				dataOut.flush();
+		// variablen initialisieren
+		{
+			if (istServer == true) {
+				serverSocket = new ServerSocket(port);
+				System.out.println("Server auf IP-Addresse:" + InetAddress.getLocalHost().getHostAddress() + " gestartet!");
+				System.out.println("Warte auf Client...");
+				socket = serverSocket.accept();
+				System.out.println("Server gestartet!");
+			} else {
+				socket = clientVerbinden(reader, ip, port);
 			}
-			socket.close();
+			dataIn = new DataInputStream(socket.getInputStream());
+			dataOut = new DataOutputStream(socket.getOutputStream());
 		}
-		
-		if (!istServer) {
-			while (msgIn != "end") {
-				msgOut = reader.readLine();
-				dataOut.writeUTF(msgOut);
-//				dataOut.flush();
-				
-				msgIn = dataIn.readUTF();
-				System.out.println(msgIn);  //print server msg
+
+		// spielverlauf
+		try {
+			schiffeEinlesen(spielfeld, reader, dataOut);
+			datenSenden("schiffIndex:alle", dataOut);
+
+			while (!msgIn.equalsIgnoreCase("schiffIndex:alle")) {
+				if (dataIn.available() != 0) {
+					msgIn = dataIn.readUTF();
+					System.out.println(msgIn);
+				}
+			}
+
+			System.out.println("Hier sollte es weitergehen");
+			System.out.println("Also das Schießen und so");
+
+		} catch (SocketException e) {
+			System.out.flush();
+			if (istServer == true) {
+				System.err.println("Verbindung zum Client verloren!");
+			} else {
+				System.err.println("Verbindung zum Server verloren!");
 			}
 		}
-		
+
 	}
 
 	// verbinde den client zum server
-	private static Socket verbindeZuServer(BufferedReader reader, String ip, int port) {
+	private static Socket clientVerbinden(BufferedReader reader, String ip, int port) {
 		boolean fehler = false;
 		Socket socket = new Socket();
+		String eingabe;
+		// schleife
 		do {
+			// fehler abfangen
 			try {
-				// verbindungsfehler
-				if (fehler) {
+				if (fehler == true) {
+					// verbindungsfehler dem nutzer mitteilen
 					System.out.println("Konnte nicht zum Server verbinden, bitte überprüfen Sie die IP!");
 				}
-				
+
 				System.out.print("Zu welcher IP soll verbunden werden? (Bsp. 127.0.0.1): ");
-				final String eingabe = reader.readLine();
-				
+				eingabe = reader.readLine();
+				// eingegebene ip ausprobieren
 				socket = new Socket(eingabe, port);
+				fehler = false;
 			} catch (Exception e) {
 				fehler = true;
 			}
 		} while (fehler);
 		return socket;
 	}
-	
+
 	// einstellungen für den server/client festlegen
 	private static boolean netzwerktypEinlesen(BufferedReader reader) throws IOException {
 		int fehlerCode = 0;
@@ -139,7 +143,7 @@ public class SchiffeVersenken {
 	}
 
 	// konsole clearen (mit \n vollspamen)
-	private static void clear() {
+	private static void konsoleLeeren() {
 		StringBuffer buffer = new StringBuffer();
 		for (int i = 0; i < 50; i++) {
 			buffer.append("\n");
@@ -187,7 +191,7 @@ public class SchiffeVersenken {
 		return multiplayer;
 	}
 
-	// spielmodi in der konsole ausgeben
+	// spielmodi auswahlbildschirm in der konsole ausgeben
 	private static void spielmodiWahlAusgeben() {
 		StringBuffer buffer = new StringBuffer();
 		for (int i = 0; i < 19; i++) {
@@ -279,8 +283,143 @@ public class SchiffeVersenken {
 		}
 	}
 
-	// aufgabe 3
-	// spieler schiffer platzieren lassen
+	// (multiplayer) spieler schiffe platzieren lassen; sendet aktuelles schiff als info
+	private static void schiffeEinlesen(char[][] spielfeld, BufferedReader reader, DataOutputStream dataOutput) throws IOException {
+		// falls die eingabe ungültig war soll sie wiederholt werden
+		boolean wiederholen = false;
+		int indexSchiff = 0;
+
+		// länge des schiffe setzen
+		final int[] laengen = { 2, 3, 3, 4, 5 };
+
+		//FORMAT
+		System.out.println();
+		spielfeldAusgeben(spielfeld);
+
+		// für alle 5 schiffe
+		for (int i = 0; i < 5; i++) {
+			indexSchiff = i + 1;
+			datenSenden("schiffIndex:" + indexSchiff, dataOutput);
+
+			// laenge des aktuellen schiffs festlegen
+			final int laenge = laengen[i];
+
+			do {
+				// FORMAT
+				System.out.println();
+
+				// RICHTUNG
+				System.out.print(
+						"In welcher Richtung soll das " + (i + 1) + ".Schiff (Länge = " + laenge + ") platziert werden? (H)orizontal/(V)ertikal: ");
+				String eingabe = reader.readLine();
+
+				//DEVELOPER
+				if (eingabe.equalsIgnoreCase("skip")) {
+					spielfeld[0][0] = '*';
+					spielfeld[1][0] = '*';
+
+					spielfeld[0][2] = '*';
+					spielfeld[1][2] = '*';
+					spielfeld[2][2] = '*';
+
+					spielfeld[0][4] = '*';
+					spielfeld[1][4] = '*';
+					spielfeld[2][4] = '*';
+
+					spielfeld[0][6] = '*';
+					spielfeld[1][6] = '*';
+					spielfeld[2][6] = '*';
+					spielfeld[3][6] = '*';
+
+					spielfeld[0][8] = '*';
+					spielfeld[1][8] = '*';
+					spielfeld[2][8] = '*';
+					spielfeld[3][8] = '*';
+					spielfeld[4][8] = '*';
+					return;
+				}
+
+				// in großbuchstaben umwandeln
+				char richtung = Character.toUpperCase(eingabe.charAt(0));
+
+				// validen wert für richtung erzwingen
+				while (!richtigeRichtung(richtung)) {
+					System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Richtung!");
+					System.out.print("Bitte erneut eingeben (H/V): ");
+					eingabe = reader.readLine();
+					richtung = Character.toUpperCase(eingabe.charAt(0));
+				}
+
+				// REIHE
+				System.out.print("In welcher Reihe soll der Anfang des " + (i + 1) + ".Schiffs (Länge = " + laenge + ") platziert werden? (0-9): ");
+				eingabe = reader.readLine();
+				// in großbuchstaben umwandeln
+				char reihe = Character.toUpperCase(eingabe.charAt(0));
+
+				// validen wert für reihe erzwingen
+				while (!richtigeReihe(reihe)) {
+					System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Reihe!");
+					System.out.print("Bitte erneut eingeben (0-9): ");
+					eingabe = reader.readLine();
+					reihe = Character.toUpperCase(eingabe.charAt(0));
+				}
+
+				// SPALTE
+				System.out.print("In welcher Spalte soll der Anfang des " + (i + 1) + ". Schiffs (Länge = " + laenge + ") platziert werden? (A-J): ");
+				eingabe = reader.readLine();
+				// in großbuchstaben umwandeln
+				char spalte = Character.toUpperCase(eingabe.charAt(0));
+
+				// validen wert für spalte erzwingen
+				while (!richtigeSpalte(spalte)) {
+					System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Spalte!");
+					System.out.print("Bitte erneut eingeben (A-J): ");
+					eingabe = reader.readLine();
+					spalte = Character.toUpperCase(eingabe.charAt(0));
+				}
+
+				final int schiffBerührtIndex = schiffBeruehrt(richtung, reihe, spalte, spielfeld, laenge);
+
+				// sichergehen, dass schiff nicht außerhalb des spielfelds liegt
+				if (schiffAußerhalb(richtung, reihe, spalte, spielfeld, laenge)) {
+					System.out.println();
+					System.out.println("Schiff liegt außerhalb des Spielfelds!");
+					System.out.println("Bitte erneut eingeben.");
+					wiederholen = true;
+				}
+				// sichergehen, dass schiff nicht mit anderem überlappt
+				else if (schiffUeberlappt(richtung, reihe, spalte, spielfeld, laenge)) {
+					System.out.println();
+					System.out.println("Schiff kann nicht an Position gesetzt werden, wo bereits ein Schiff liegt!");
+					System.out.println("Bitte erneut eingeben.");
+					wiederholen = true;
+				} else if (schiffBerührtIndex != 0) {
+					System.out.println();
+					switch (schiffBerührtIndex) {
+					case 1:
+						System.out.println("Schiff kann nicht mit anderem Schiff über Ecke gesetzt!");
+						break;
+					case 2:
+						System.out.println("Schiff berührt anderes Schiff!");
+						break;
+					}
+					wiederholen = true;
+				} else {
+					// schiff muss nicht erneut eingegeben werden
+					wiederholen = false;
+					// spielfeld[][] aktuelles schiff hinzufügen
+					schiffHinzufuegen(spielfeld, richtung, reihe, spalte, laenge);
+
+					// nach jeder eingabe spielfeld aktualisieren
+					spielfeldAusgeben(spielfeld);
+				}
+			} while (wiederholen == true);
+			// FORMAT
+			System.out.println();
+		}
+	}
+
+	// (singleplayer) spieler schiffe platzieren lassen
 	private static void schiffeEinlesen(char[][] spielfeld, BufferedReader reader) throws IOException {
 		// falls die eingabe ungültig war soll sie wiederholt werden
 		boolean wiederholen = false;
@@ -292,6 +431,7 @@ public class SchiffeVersenken {
 
 		// für alle 5 schiffe
 		for (int i = 0; i < 5; i++) {
+
 			// laenge des aktuellen schiffs festlegen
 			final int laenge = laengen[i];
 
@@ -381,6 +521,12 @@ public class SchiffeVersenken {
 			// FORMAT
 			System.out.println();
 		}
+	}
+
+	// multiplayer daten tauschen
+	private static void datenSenden(String msg, DataOutputStream dataOut) throws IOException {
+		dataOut.writeUTF(msg);
+		dataOut.flush();
 	}
 
 	// spielfeld neue schiffe hinzufügen
