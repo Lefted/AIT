@@ -36,7 +36,6 @@ public class SchiffeVersenken {
 	}
 
 	// code für den multipalyer-verlauf
-	@SuppressWarnings("resource")
 	private static void multiplayer(BufferedReader reader, char[][] spielfeld) throws IOException {
 		// VARIABLEN
 		final String ip = "";
@@ -66,6 +65,11 @@ public class SchiffeVersenken {
 
 		// spielverlauf
 		try {
+			//VARIABLEN
+			boolean spielLaeuft = true;
+			boolean instanzHatErstenZug = false;
+			boolean weiter = false;
+
 			schiffeEinlesen(spielfeld, reader, dataOut);
 			datenSenden("schiffIndex:alle", dataOut);
 
@@ -76,8 +80,100 @@ public class SchiffeVersenken {
 				}
 			}
 
-			System.out.println("Hier sollte es weitergehen");
-			System.out.println("Also das Schießen und so");
+			// festlegen wer den ersten zug hat
+			if (istServer == true) {
+				instanzHatErstenZug = ersterZug(istServer, reader, dataOut);
+				if (instanzHatErstenZug == true) {
+					datenSenden("ersterZug:false", dataOut);
+				} else {
+					datenSenden("ersterZug:true", dataOut);
+				}
+			} else {
+				while (!msgIn.contains("ersterZug")) {
+					if (dataIn.available() != 0) {
+						System.out.println("recived packet");
+						msgIn = dataIn.readUTF();
+						if (msgIn.equalsIgnoreCase("ersterZug:true")) {
+							System.out.println("true");
+							instanzHatErstenZug = true;
+						} else if (msgIn.equalsIgnoreCase("ersterZug:false")) {
+							instanzHatErstenZug = false;
+							System.out.println("false");
+						}
+					}
+				}
+			}
+
+			// schuss-loop
+			while (spielLaeuft == true) {
+				boolean istAmZug = instanzHatErstenZug;
+				// TODO schießen
+				if (instanzHatErstenZug) {
+					//TODO kanone einlesen
+					System.out.println("pretend as if i could hear you..");
+					System.out.println("Press {enter} to continue...");
+					if (reader.ready()) {
+						reader.readLine();
+					}
+					//TODO
+					// vom anderen spieler schauen ob treffer war und schiff removen
+
+					datenSenden("istFertig", dataOut);
+					istAmZug = false;
+
+					System.out.println("istFertig gesendet");
+					//warten bis anderer gezogen hat
+					weiter = false;
+					msgIn = "";
+
+					System.out.println("Warten auf andere Person...");
+					while (weiter == false) {
+						if (dataIn.available() != 0) {
+							msgIn = dataIn.readUTF();
+							System.out.println("msgIN: " + msgIn);
+							if (msgIn.equalsIgnoreCase("istFertig")) {
+								weiter = true;
+								System.out.println("weiter erteilt!");
+								msgIn = "";
+							}
+						}
+					}
+
+				} else {
+					// warten bis anderer spieler gezogen hat
+					// weiter resetten damit erneut gewartet wird
+					weiter = false;
+					msgIn = "";
+
+					System.out.println("Warten auf andere Person...");
+					while (weiter == false) {
+						if (dataIn.available() != 0) {
+							msgIn = dataIn.readUTF();
+							System.out.println("msgIn: " + msgIn);
+							System.out.println("daten bekommen:" + msgIn);
+							if (msgIn.equalsIgnoreCase("istFertig")) {
+								System.out.println("istfertig bekommend");
+								weiter = true;
+								istAmZug = true;
+								msgIn = "";
+							}
+							//TODO spieler sagen ob getroffen wurde
+						}
+					}
+					//TODO selbst schießen
+					System.out.println("Jetzt bin ich am Zug!");
+					System.out.println("pretend as if i could hear you..");
+					System.out.println("Press {enter} to continue...");
+					if (reader.ready()) {
+						reader.readLine();
+					}
+
+					datenSenden("istFertig", dataOut);
+					istAmZug = false;
+					System.out.println("istFertig gesendet");
+
+				}
+			}
 
 		} catch (SocketException e) {
 			System.out.flush();
@@ -88,6 +184,43 @@ public class SchiffeVersenken {
 			}
 		}
 
+	}
+
+	// (multiplayer) bestimmt wer den ersten zug macht, gibt zurück ob instanz den erster zug hat
+	private static boolean ersterZug(boolean istServer, BufferedReader reader, DataOutputStream dataOutput) {
+		boolean fehler = false;
+		boolean instanzHatErstenZug = true;
+		//FORMAT
+		System.out.println();
+		do {
+			try {
+				if (fehler) {
+					System.out.flush();
+					System.err.println("Bitte geben Sie einen gültigen Wert an!");
+					System.err.flush();
+				}
+				System.out.print("Wer soll den ersten Zug machen? Client (C), Server(S), Zufall (Z):");
+				String eingabe = reader.readLine();
+				char c = Character.toUpperCase(eingabe.charAt(0));
+
+				if (c == 'C') {
+					instanzHatErstenZug = (istServer) ? false : true;
+					fehler = false;
+				} else if (c == 'S') {
+					instanzHatErstenZug = (istServer) ? true : false;
+					fehler = false;
+				} else if (c == 'Z') {
+					final int random = (int) (Math.random() * 2);
+					instanzHatErstenZug = (random == 1) ? true : false;
+					fehler = false;
+				} else {
+					fehler = true;
+				}
+			} catch (Exception e) {
+				fehler = true;
+			}
+		} while (fehler);
+		return instanzHatErstenZug;
 	}
 
 	// verbinde den client zum server
@@ -214,11 +347,14 @@ public class SchiffeVersenken {
 				// links und rechts
 				if ((i > 0) && (i < 18)) {
 					if ((j == 15) && (i == 3)) {
-						buffer.append("sᴄʜɪғғᴇ ᴠᴇʀsᴇɴᴋᴇɴ");
+						//						buffer.append("sᴄʜɪғғᴇ ᴠᴇʀsᴇɴᴋᴇɴ");
+						buffer.append("SCHIFFE VERSENKEN");
 					} else if ((j == 15) && (i == 7)) {
-						buffer.append("sɪɴɢʟᴇᴘʟᴀʏᴇʀ  (s)");
+						//						buffer.append("sɪɴɢʟᴇᴘʟᴀʏᴇʀ  (s)");
+						buffer.append("SINGLEPLAYER (S)");
 					} else if ((j == 15) && (i == 10)) {
-						buffer.append("ᴍᴜʟᴛɪᴘʟᴀʏᴇʀ   (ᴍ)");
+						//						buffer.append("ᴍᴜʟᴛɪᴘʟᴀʏᴇʀ   (ᴍ)");
+						buffer.append("MULTIPLAYER (M)");
 					} else if ((j == 39) && (i == 17)) {
 						buffer.append("von Moritz");
 					}
@@ -232,11 +368,11 @@ public class SchiffeVersenken {
 							buffer.append(" ");
 						}
 					} else if (i == 7) {
-						if (((j > 0) && (j < 15)) || (j < 32)) {
+						if (((j > 0) && (j < 15)) || (j < 33)) {
 							buffer.append(" ");
 						}
 					} else if (i == 10) {
-						if (((j > 0) && (j < 15)) || (j < 32)) {
+						if (((j > 0) && (j < 15)) || (j < 34)) {
 							buffer.append(" ");
 						}
 					} else if (i == 17) {
