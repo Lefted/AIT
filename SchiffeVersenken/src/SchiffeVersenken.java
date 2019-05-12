@@ -106,22 +106,25 @@ public class SchiffeVersenken {
 
 			// schuss-loop
 			while (spielLaeuft == true) {
-				boolean istAmZug = instanzHatErstenZug;
 				// TODO schießen
 				if (instanzHatErstenZug) {
+
 					//TODO kanone einlesen
-					System.out.println("pretend as if i could hear you..");
+					System.out.println("TODO schießen");
 					System.out.println("Press {enter} to continue...");
-					if (reader.ready()) {
-						reader.readLine();
+
+					//eingaben aus buffer leeren
+					while (reader.ready()) {
+						reader.skip(1);
 					}
+					reader.readLine();
+
 					//TODO
 					// vom anderen spieler schauen ob treffer war und schiff removen
 
 					datenSenden("istFertig", dataOut);
-					istAmZug = false;
-
 					System.out.println("istFertig gesendet");
+
 					//warten bis anderer gezogen hat
 					weiter = false;
 					msgIn = "";
@@ -130,11 +133,8 @@ public class SchiffeVersenken {
 					while (weiter == false) {
 						if (dataIn.available() != 0) {
 							msgIn = dataIn.readUTF();
-							System.out.println("msgIN: " + msgIn);
 							if (msgIn.equalsIgnoreCase("istFertig")) {
 								weiter = true;
-								System.out.println("weiter erteilt!");
-								msgIn = "";
 							}
 						}
 					}
@@ -149,29 +149,22 @@ public class SchiffeVersenken {
 					while (weiter == false) {
 						if (dataIn.available() != 0) {
 							msgIn = dataIn.readUTF();
-							System.out.println("msgIn: " + msgIn);
-							System.out.println("daten bekommen:" + msgIn);
 							if (msgIn.equalsIgnoreCase("istFertig")) {
-								System.out.println("istfertig bekommend");
 								weiter = true;
-								istAmZug = true;
-								msgIn = "";
 							}
 							//TODO spieler sagen ob getroffen wurde
 						}
 					}
 					//TODO selbst schießen
-					System.out.println("Jetzt bin ich am Zug!");
-					System.out.println("pretend as if i could hear you..");
+					System.out.println("TODO schießen");
 					System.out.println("Press {enter} to continue...");
-					if (reader.ready()) {
-						reader.readLine();
+					// eingaben aus buffer leeren
+					while (reader.ready()) {
+						reader.skip(1);
 					}
+					reader.readLine();
 
 					datenSenden("istFertig", dataOut);
-					istAmZug = false;
-					System.out.println("istFertig gesendet");
-
 				}
 			}
 
