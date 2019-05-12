@@ -130,23 +130,23 @@ public class SchiffeVersenken {
 				if (instanzHatErstenZug) {
 
 					//TODO kanone einlesen
-					schießen(reader, dataOut);
+					schießen(reader, spielfeld, dataOut);
 //					System.out.println("TODO schießen");
 //					System.out.println("Press {enter} to continue...");
 //
 					//eingaben aus buffer leeren
-					while (reader.ready()) {
-						reader.skip(1);
-					}
-					System.out.println();
-					System.out.println("Zum Fortfahren {Enter} drücken.");
-					reader.readLine();
+//					while (reader.ready()) {
+//						reader.skip(1);
+//					}
+//					System.out.println();
+//					System.out.println("Zum Fortfahren {Enter} drücken.");
+//					reader.readLine();
 					
 					//TODO
 					// vom anderen spieler schauen ob treffer war und schiff removen
 
 					
-					datenSenden("istFertig", dataOut);
+					datenSenden("schießen:fertig", dataOut);
 
 					//warten bis anderer gezogen hat
 					weiter = false;
@@ -156,7 +156,7 @@ public class SchiffeVersenken {
 					while (weiter == false) {
 						if (dataIn.available() != 0) {
 							msgIn = dataIn.readUTF();
-							if (msgIn.equalsIgnoreCase("istFertig")) {
+							if (msgIn.equalsIgnoreCase("schießen:fertig")) {
 								weiter = true;
 							}
 						}
@@ -172,22 +172,22 @@ public class SchiffeVersenken {
 					while (weiter == false) {
 						if (dataIn.available() != 0) {
 							msgIn = dataIn.readUTF();
-							if (msgIn.equalsIgnoreCase("istFertig")) {
+							if (msgIn.equalsIgnoreCase("schießen:fertig")) {
 								weiter = true;
 							}
 							//TODO spieler sagen ob getroffen wurde
 						}
 					}
 					//TODO selbst schießen
-					schießen(reader, dataOut);
+					schießen(reader, spielfeld, dataOut);
 					
-					while (reader.ready()) {
-						reader.skip(1);
-					}
-					System.out.println();
-					System.out.println("Zum Fortfahren {Enter} drücken.");
-					reader.readLine();
-					datenSenden("istFertig", dataOut);
+//					while (reader.ready()) {
+//						reader.skip(1);
+//					}
+//					System.out.println();
+//					System.out.println("Zum Fortfahren {Enter} drücken.");
+//					reader.readLine();
+					datenSenden("schießen:fertig", dataOut);
 				}
 			}
 
@@ -203,9 +203,61 @@ public class SchiffeVersenken {
 	}
 
 	// (multiplayer) schuss einlesen, überprüfen, und überprüfen ob getroffen wurde
-	private static void schießen(BufferedReader reader, DataOutputStream dataOutput) throws IOException {
+	private static void schießen(BufferedReader reader, char[][] spielfeld, DataOutputStream dataOutput) throws IOException {
+		//VARIABLEN
+		String eingabe;
+		char c;
+		boolean fehler = false;
+		int xPos = 0;
+		int yPos = 0;
+		
 		konsoleLeeren();
-		System.out.println("Hier wäre dann das Schießen!");
+		System.out.println("Eigenes Spielfeld:");
+		spielfeldAusgeben(spielfeld);
+		System.out.println();
+		System.out.println();
+		System.out.println();
+		
+		System.out.println("Wohin soll geschossen werden?");
+		do {
+			System.out.print("Welche x-Koordinate soll die Kugel haben? (A-J): ");
+			
+			// bevor eingaben eingelesen werden, wird der buffer geleert
+			while (reader.ready()) {
+				reader.skip(1);
+			}
+			eingabe = reader.readLine();
+			c = Character.toUpperCase(eingabe.charAt(0));
+			if (!richtigeSpalte(c)) {
+				fehler = true;
+			} else {
+				xPos = c - 'A';
+				fehler = false;
+			}
+		} while (fehler);
+		do {
+			System.out.print("Welche y-Koordinate soll die Kugel haben? (0-9): ");
+			
+			// buffer leeren
+			while (reader.ready()) {
+			reader.skip(1);
+			}
+			eingabe = reader.readLine();
+			c = Character.toUpperCase(eingabe.charAt(0));
+			if (!richtigeReihe(c)) {
+				fehler = true;
+			} else {
+				yPos = c - '0';
+				fehler = false;
+			}
+			
+			
+		} while (fehler);
+		System.out.println(" ┌──────────┐        ╔═╗       ___||___");
+		System.out.println(" └O─────O───┘        ╚═╝   ~~~~\\_____╦/~~~~");
+		datenSenden("schießen:" + xPos + "," + yPos, dataOutput);
+		
+		//empfangen ob getroffen wurde
 	}
 	
 	// (multiplayer) bestimmt wer den ersten zug macht, gibt zurück ob instanz den erster zug hat
@@ -380,6 +432,10 @@ public class SchiffeVersenken {
 						buffer.append("MULTIPLAYER (M)");
 					} else if ((j == 39) && (i == 17)) {
 						buffer.append("von Moritz");
+					} else if ((j == 2) && (i == 13)) {
+						buffer.append(" ┌──────────┐     ╔═╗         ___||___");
+					} else if ((j == 2) && (i == 14)) {
+						buffer.append(" └O─────O───┘     ╚═╝     ~~~~\\_____╦/~~~~");
 					}
 
 					else if (j == 0) {
@@ -402,7 +458,16 @@ public class SchiffeVersenken {
 						if (j < 38) {
 							buffer.append(" ");
 						}
-					} else {
+					} else if (i == 13) {
+						if (((j > 0) && (j < 2)) || (j < 11)) {
+							buffer.append(" ");
+						}
+					} else if (i == 14) {
+						if (((j > 0) && (j < 2)) || (j < 7)) {
+							buffer.append(" ");
+						}
+					}
+					else {
 						buffer.append(" ");
 					}
 				}
@@ -426,6 +491,9 @@ public class SchiffeVersenken {
 		}
 
 		System.out.println(buffer);
+
+//		System.out.println(" ┌──────────┐        ╔═╗       ___||___");
+//		System.out.println(" └O─────O───┘        ╚═╝   ~~~~\\_____╦/~~~~");
 	}
 
 	// spielfeld in der konsole ausgeben
