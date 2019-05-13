@@ -130,7 +130,7 @@ public class SchiffeVersenken {
 				if (instanzHatErstenZug) {
 
 					//TODO kanone einlesen
-					schießen(reader, spielfeld, dataOut);
+					schießen(reader, spielfeld, dataOut, dataIn);
 //					System.out.println("TODO schießen");
 //					System.out.println("Press {enter} to continue...");
 //
@@ -156,6 +156,16 @@ public class SchiffeVersenken {
 					while (weiter == false) {
 						if (dataIn.available() != 0) {
 							msgIn = dataIn.readUTF();
+							if (msgIn.contains("schießenPos:")) {
+								String temp = msgIn.replace("schießenPos:", "");
+								System.out.println(temp);
+								String[] koordinaten = temp.split(",");
+								int posX = Integer.parseInt(koordinaten[0]);
+								int posY = Integer.parseInt(koordinaten[1]);
+								System.out.println("posX:" + posX);
+								System.out.println("posY:" + posY);
+								
+							}
 							if (msgIn.equalsIgnoreCase("schießen:fertig")) {
 								weiter = true;
 							}
@@ -172,6 +182,14 @@ public class SchiffeVersenken {
 					while (weiter == false) {
 						if (dataIn.available() != 0) {
 							msgIn = dataIn.readUTF();
+							if (msgIn.contains("schießenPos:")) {
+								String temp = msgIn.replace("schießenPos:", "");
+								String[] koordinaten = temp.split(",");
+								int posX = Integer.parseInt(koordinaten[0]);
+								int posY = Integer.parseInt(koordinaten[1]);
+								char posXStr = (char) (posX + 'A');
+								System.out.println("Dein Mitspieler hat auf " + posXStr + "/" + posY + " geschossen");
+							}
 							if (msgIn.equalsIgnoreCase("schießen:fertig")) {
 								weiter = true;
 							}
@@ -179,7 +197,7 @@ public class SchiffeVersenken {
 						}
 					}
 					//TODO selbst schießen
-					schießen(reader, spielfeld, dataOut);
+					schießen(reader, spielfeld, dataOut, dataIn);
 					
 //					while (reader.ready()) {
 //						reader.skip(1);
@@ -203,8 +221,9 @@ public class SchiffeVersenken {
 	}
 
 	// (multiplayer) schuss einlesen, überprüfen, und überprüfen ob getroffen wurde
-	private static void schießen(BufferedReader reader, char[][] spielfeld, DataOutputStream dataOutput) throws IOException {
+	private static void schießen(BufferedReader reader, char[][] spielfeld, DataOutputStream dataOutput, DataInputStream dataInput) throws IOException {
 		//VARIABLEN
+		String msgIn = null;
 		String eingabe;
 		char c;
 		boolean fehler = false;
@@ -255,9 +274,21 @@ public class SchiffeVersenken {
 		} while (fehler);
 		System.out.println(" ┌──────────┐        ╔═╗       ___||___");
 		System.out.println(" └O─────O───┘        ╚═╝   ~~~~\\_____╦/~~~~");
-		datenSenden("schießen:" + xPos + "," + yPos, dataOutput);
+		datenSenden("schießenPos:" + xPos + "," + yPos, dataOutput);
 		
 		//empfangen ob getroffen wurde
+		boolean weiter = false;
+		while(weiter == false) {
+			if (dataInput.available() != 0) {
+				msgIn = dataInput.readUTF();
+				if (msgIn.equalsIgnoreCase("kugel:getroffen")) {
+					System.out.println("Die Kugel hat getroffen!");
+				} else {
+					System.out.println("Die Kugel hat nicht getroffen!");
+				}
+				weiter = true;
+			}
+		}
 	}
 	
 	// (multiplayer) bestimmt wer den ersten zug macht, gibt zurück ob instanz den erster zug hat
