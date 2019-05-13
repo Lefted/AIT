@@ -11,7 +11,7 @@ import java.net.SocketException;
 public class SchiffeVersenken {
 
 	// main
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		// VARIABLEN
 		// spielfeld[x][y]
 		char[][] spielfeld = spielfeldInitalisieren();
@@ -36,7 +36,7 @@ public class SchiffeVersenken {
 	}
 
 	// code für den multipalyer-verlauf
-	private static void multiplayer(BufferedReader reader, char[][] spielfeld) throws IOException {
+	private static void multiplayer(BufferedReader reader, char[][] spielfeld) throws IOException, InterruptedException {
 		// VARIABLEN
 		final String ip = "";
 		final int port = 1201;
@@ -126,26 +126,9 @@ public class SchiffeVersenken {
 
 			// schuss-loop
 			while (spielLaeuft == true) {
-				// TODO schießen
 				if (instanzHatErstenZug) {
 
-					//TODO kanone einlesen
 					schießen(reader, spielfeld, dataOut, dataIn);
-//					System.out.println("TODO schießen");
-//					System.out.println("Press {enter} to continue...");
-//
-					//eingaben aus buffer leeren
-//					while (reader.ready()) {
-//						reader.skip(1);
-//					}
-//					System.out.println();
-//					System.out.println("Zum Fortfahren {Enter} drücken.");
-//					reader.readLine();
-					
-					//TODO
-					// vom anderen spieler schauen ob treffer war und schiff removen
-
-					
 					datenSenden("schießen:fertig", dataOut);
 
 					//warten bis anderer gezogen hat
@@ -162,9 +145,19 @@ public class SchiffeVersenken {
 								String[] koordinaten = temp.split(",");
 								int posX = Integer.parseInt(koordinaten[0]);
 								int posY = Integer.parseInt(koordinaten[1]);
-								System.out.println("posX:" + posX);
-								System.out.println("posY:" + posY);
-								
+								char posXStr = (char) (posX + 'A');
+								System.out.println("Dein Mitspieler hat auf " + posXStr + "/" + posY + " geschossen");
+								try {
+									Thread.sleep(3000);
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+								if (spielfeld[posX][posY] == '*') {
+									spielfeld[posX][posY] = '#';
+									datenSenden("kugel:getroffen", dataOut);
+								} else {
+									datenSenden("kugel:verfehlt", dataOut);
+								}
 							}
 							if (msgIn.equalsIgnoreCase("schießen:fertig")) {
 								weiter = true;
@@ -189,22 +182,24 @@ public class SchiffeVersenken {
 								int posY = Integer.parseInt(koordinaten[1]);
 								char posXStr = (char) (posX + 'A');
 								System.out.println("Dein Mitspieler hat auf " + posXStr + "/" + posY + " geschossen");
+								try {
+									Thread.sleep(3000);
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+								if (spielfeld[posX][posY] == '*') {
+									spielfeld[posX][posY] = '#';
+									datenSenden("kugel:getroffen", dataOut);
+								} else {
+									datenSenden("kugel:verfehlt", dataOut);
+								}
 							}
 							if (msgIn.equalsIgnoreCase("schießen:fertig")) {
 								weiter = true;
 							}
-							//TODO spieler sagen ob getroffen wurde
 						}
 					}
-					//TODO selbst schießen
 					schießen(reader, spielfeld, dataOut, dataIn);
-					
-//					while (reader.ready()) {
-//						reader.skip(1);
-//					}
-//					System.out.println();
-//					System.out.println("Zum Fortfahren {Enter} drücken.");
-//					reader.readLine();
 					datenSenden("schießen:fertig", dataOut);
 				}
 			}
@@ -221,7 +216,7 @@ public class SchiffeVersenken {
 	}
 
 	// (multiplayer) schuss einlesen, überprüfen, und überprüfen ob getroffen wurde
-	private static void schießen(BufferedReader reader, char[][] spielfeld, DataOutputStream dataOutput, DataInputStream dataInput) throws IOException {
+	private static void schießen(BufferedReader reader, char[][] spielfeld, DataOutputStream dataOutput, DataInputStream dataInput) throws IOException, InterruptedException {
 		//VARIABLEN
 		String msgIn = null;
 		String eingabe;
@@ -274,6 +269,12 @@ public class SchiffeVersenken {
 		} while (fehler);
 		System.out.println(" ┌──────────┐        ╔═╗       ___||___");
 		System.out.println(" └O─────O───┘        ╚═╝   ~~~~\\_____╦/~~~~");
+		Thread.sleep(1000);
+		System.out.println(".");
+		Thread.sleep(1000);
+		System.out.println("..");
+		Thread.sleep(1000);
+		System.out.println("..");
 		datenSenden("schießenPos:" + xPos + "," + yPos, dataOutput);
 		
 		//empfangen ob getroffen wurde
