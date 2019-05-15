@@ -71,16 +71,16 @@ public class SchiffeVersenken {
 			boolean instanzHatErstenZug = false;
 			boolean weiter = false;
 			final String infoPre = "<info> ";
-			
+
 			// bildschirm leeren
 			System.out.println();
-			System.out.println("Drücke {Enter}, um mit dem Platzieren deiner Schiff zu starten...");
+			System.out.println("Drücke {Enter}, um zu starten...");
 			while (reader.ready()) {
 				reader.skip(1);
 			}
 			reader.readLine();
 			konsoleLeeren();
-			
+
 			// schiffe platzieren
 			schiffeEinlesen(spielfeld, reader, dataOut);
 			datenSenden("schiffIndex:alle", dataOut);
@@ -131,7 +131,7 @@ public class SchiffeVersenken {
 					schießen(reader, spielfeld, dataOut, dataIn);
 					datenSenden("schießen:fertig", dataOut);
 
-					//warten bis anderer gezogen hat
+					// warten bis anderer gezogen hat
 					weiter = false;
 					msgIn = "";
 
@@ -215,8 +215,24 @@ public class SchiffeVersenken {
 
 	}
 
+	// (multiplayer) warten bis daten erhalten wurden
+	@SuppressWarnings("unused")
+	private static void warten(String activationString, Runnable run, DataInputStream dataInput, DataOutputStream dataOut) throws IOException {
+		boolean weiter = false;
+		while (weiter == false) {
+			if (dataInput.available() != 0) {
+				String msgIn = dataInput.readUTF();
+				if (msgIn.equalsIgnoreCase(activationString)) {
+					run.run();
+					weiter = true;
+				}
+			}
+		}
+	}
+
 	// (multiplayer) schuss einlesen, überprüfen, und überprüfen ob getroffen wurde
-	private static void schießen(BufferedReader reader, char[][] spielfeld, DataOutputStream dataOutput, DataInputStream dataInput) throws IOException, InterruptedException {
+	private static void schießen(BufferedReader reader, char[][] spielfeld, DataOutputStream dataOutput, DataInputStream dataInput)
+			throws IOException, InterruptedException {
 		//VARIABLEN
 		String msgIn = null;
 		String eingabe;
@@ -224,48 +240,55 @@ public class SchiffeVersenken {
 		boolean fehler = false;
 		int xPos = 0;
 		int yPos = 0;
-		
+
 		konsoleLeeren();
 		System.out.println("Eigenes Spielfeld:");
 		spielfeldAusgeben(spielfeld);
 		System.out.println();
 		System.out.println();
 		System.out.println();
-		
+
 		System.out.println("Wohin soll geschossen werden?");
 		do {
 			System.out.print("Welche x-Koordinate soll die Kugel haben? (A-J): ");
-			
+
 			// bevor eingaben eingelesen werden, wird der buffer geleert
 			while (reader.ready()) {
 				reader.skip(1);
 			}
 			eingabe = reader.readLine();
-			c = Character.toUpperCase(eingabe.charAt(0));
-			if (!richtigeSpalte(c)) {
+			if (eingabe.equalsIgnoreCase("")) {
 				fehler = true;
 			} else {
-				xPos = c - 'A';
-				fehler = false;
+				c = Character.toUpperCase(eingabe.charAt(0));
+				if (!richtigeSpalte(c)) {
+					fehler = true;
+				} else {
+					xPos = c - 'A';
+					fehler = false;
+				}
 			}
 		} while (fehler);
 		do {
 			System.out.print("Welche y-Koordinate soll die Kugel haben? (0-9): ");
-			
+
 			// buffer leeren
 			while (reader.ready()) {
-			reader.skip(1);
+				reader.skip(1);
 			}
 			eingabe = reader.readLine();
-			c = Character.toUpperCase(eingabe.charAt(0));
-			if (!richtigeReihe(c)) {
+			if (eingabe.equalsIgnoreCase("")) {
 				fehler = true;
 			} else {
-				yPos = c - '0';
-				fehler = false;
+				c = Character.toUpperCase(eingabe.charAt(0));
+				if (!richtigeReihe(c)) {
+					fehler = true;
+				} else {
+					yPos = c - '0';
+					fehler = false;
+				}
 			}
-			
-			
+
 		} while (fehler);
 		System.out.println(" ┌──────────┐        ╔═╗       ___||___");
 		System.out.println(" └O─────O───┘        ╚═╝   ~~~~\\_____╦/~~~~");
@@ -276,10 +299,10 @@ public class SchiffeVersenken {
 		Thread.sleep(1000);
 		System.out.println("..");
 		datenSenden("schießenPos:" + xPos + "," + yPos, dataOutput);
-		
+
 		//empfangen ob getroffen wurde
 		boolean weiter = false;
-		while(weiter == false) {
+		while (weiter == false) {
 			if (dataInput.available() != 0) {
 				msgIn = dataInput.readUTF();
 				if (msgIn.equalsIgnoreCase("kugel:getroffen")) {
@@ -291,7 +314,7 @@ public class SchiffeVersenken {
 			}
 		}
 	}
-	
+
 	// (multiplayer) bestimmt wer den ersten zug macht, gibt zurück ob instanz den erster zug hat
 	private static boolean ersterZug(boolean istServer, BufferedReader reader, DataOutputStream dataOutput) {
 		boolean fehler = false;
@@ -301,12 +324,14 @@ public class SchiffeVersenken {
 		do {
 			try {
 				if (fehler) {
-					System.out.flush();
-					System.err.println("Bitte geben Sie einen gültigen Wert an!");
-					System.err.flush();
+					System.out.println("Bitte geben Sie einen gültigen Wert an!");
 				}
 				System.out.print("Wer soll den ersten Zug machen? Client (C), Server (S), Zufall (Z):");
-				
+
+				// buffer leeren
+				while (reader.ready()) {
+					reader.skip(1);
+				}
 				String eingabe = reader.readLine();
 				char c = Character.toUpperCase(eingabe.charAt(0));
 
@@ -358,27 +383,33 @@ public class SchiffeVersenken {
 
 	// einstellungen für den server/client festlegen
 	private static boolean netzwerktypEinlesen(BufferedReader reader) throws IOException {
-		int fehlerCode = 0;
+		boolean fehler = false;
 		boolean server = false;
 		do {
 			// falls fehler auftreten diese ausgeben
-			if (fehlerCode == 1) {
+			if (fehler == true) {
 				System.out.println("Bitte tätigen Sie eine gültige Eingabe (S/C)!");
 			}
 
 			System.out.print("Möchtest du Server oder Client sein? (S/C): ");
+
+			while (reader.ready()) {
+				reader.skip(1);
+			}
 			String eingabe = reader.readLine();
-			if (Character.toUpperCase(eingabe.charAt(0)) == 'S') {
+			if (eingabe.equalsIgnoreCase("")) {
+				fehler = true;
+			} else if (Character.toUpperCase(eingabe.charAt(0)) == 'S') {
 				server = true;
-				fehlerCode = 0;
+				fehler = false;
 			} else if (Character.toUpperCase(eingabe.charAt(0)) == 'C') {
 				server = false;
-				fehlerCode = 0;
+				fehler = false;
 			} else {
-				fehlerCode = 1;
+				fehler = true;
 			}
 
-		} while (fehlerCode != 0);
+		} while (fehler == true);
 		return server;
 	}
 
@@ -413,8 +444,13 @@ public class SchiffeVersenken {
 			}
 			System.out.print("Bitte wählen Sie einen Spielmodus: ");
 			try {
+				while (reader.ready()) {
+					reader.skip(1);
+				}
 				String eingabe = reader.readLine();
-				if (Character.toUpperCase(eingabe.charAt(0)) == 'M') {
+				if (eingabe.equalsIgnoreCase("")) {
+					fehler = true;
+				} else if (Character.toUpperCase(eingabe.charAt(0)) == 'M') {
 					multiplayer = true;
 					fehler = false;
 				} else if (Character.toUpperCase(eingabe.charAt(0)) == 'S') {
@@ -498,8 +534,7 @@ public class SchiffeVersenken {
 						if (((j > 0) && (j < 2)) || (j < 7)) {
 							buffer.append(" ");
 						}
-					}
-					else {
+					} else {
 						buffer.append(" ");
 					}
 				}
@@ -524,8 +559,8 @@ public class SchiffeVersenken {
 
 		System.out.println(buffer);
 
-//		System.out.println(" ┌──────────┐        ╔═╗       ___||___");
-//		System.out.println(" └O─────O───┘        ╚═╝   ~~~~\\_____╦/~~~~");
+		//		System.out.println(" ┌──────────┐        ╔═╗       ___||___");
+		//		System.out.println(" └O─────O───┘        ╚═╝   ~~~~\\_____╦/~~~~");
 	}
 
 	// spielfeld in der konsole ausgeben
@@ -546,14 +581,24 @@ public class SchiffeVersenken {
 	private static void schiffeEinlesen(char[][] spielfeld, BufferedReader reader, DataOutputStream dataOutput) throws IOException {
 		// falls die eingabe ungültig war soll sie wiederholt werden
 		boolean wiederholen = false;
+		boolean fehler = false;
 		int indexSchiff = 0;
 
 		// länge des schiffe setzen
 		final int[] laengen = { 2, 3, 3, 4, 5 };
 
+		String eingabe;
+		char richtung = 0;
+		char reihe = 0;
+		char spalte = 0;
+
 		//FORMAT
 		System.out.println();
 		spielfeldAusgeben(spielfeld);
+		//FORMAT
+		System.out.println();
+		System.out.println();
+		System.out.println();
 
 		// für alle 5 schiffe
 		for (int i = 0; i < 5; i++) {
@@ -562,82 +607,105 @@ public class SchiffeVersenken {
 
 			// laenge des aktuellen schiffs festlegen
 			final int laenge = laengen[i];
-
+			fehler = false;
 			do {
 				// FORMAT
 				System.out.println();
 
 				// RICHTUNG
-				System.out.print(
-						"In welcher Richtung soll das " + (i + 1) + ".Schiff (Länge = " + laenge + ") platziert werden? (H)orizontal/(V)ertikal: ");
-				String eingabe = reader.readLine();
-
-				//DEVELOPER
-				if (eingabe.equalsIgnoreCase("skip")) {
-					spielfeld[0][0] = '*';
-					spielfeld[1][0] = '*';
-
-					spielfeld[0][2] = '*';
-					spielfeld[1][2] = '*';
-					spielfeld[2][2] = '*';
-
-					spielfeld[0][4] = '*';
-					spielfeld[1][4] = '*';
-					spielfeld[2][4] = '*';
-
-					spielfeld[0][6] = '*';
-					spielfeld[1][6] = '*';
-					spielfeld[2][6] = '*';
-					spielfeld[3][6] = '*';
-
-					spielfeld[0][8] = '*';
-					spielfeld[1][8] = '*';
-					spielfeld[2][8] = '*';
-					spielfeld[3][8] = '*';
-					spielfeld[4][8] = '*';
-					konsoleLeeren();
-					spielfeldAusgeben(spielfeld);
-					return;
-				}
-
-				// in großbuchstaben umwandeln
-				char richtung = Character.toUpperCase(eingabe.charAt(0));
-
-				// validen wert für richtung erzwingen
-				while (!richtigeRichtung(richtung)) {
-					System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Richtung!");
-					System.out.print("Bitte erneut eingeben (H/V): ");
+				do {
+					System.out.print("In welcher Richtung soll das " + (i + 1) + ".Schiff (Länge = " + laenge
+							+ ") platziert werden? (H)orizontal/(V)ertikal: ");
+					while (reader.ready()) {
+						reader.skip(1);
+					}
 					eingabe = reader.readLine();
-					richtung = Character.toUpperCase(eingabe.charAt(0));
-				}
+
+					//DEVELOPER
+					if (eingabe.equalsIgnoreCase("skip")) {
+						spielfeld[0][0] = '*';
+						spielfeld[1][0] = '*';
+
+						spielfeld[0][2] = '*';
+						spielfeld[1][2] = '*';
+						spielfeld[2][2] = '*';
+
+						spielfeld[0][4] = '*';
+						spielfeld[1][4] = '*';
+						spielfeld[2][4] = '*';
+
+						spielfeld[0][6] = '*';
+						spielfeld[1][6] = '*';
+						spielfeld[2][6] = '*';
+						spielfeld[3][6] = '*';
+
+						spielfeld[0][8] = '*';
+						spielfeld[1][8] = '*';
+						spielfeld[2][8] = '*';
+						spielfeld[3][8] = '*';
+						spielfeld[4][8] = '*';
+						konsoleLeeren();
+						spielfeldAusgeben(spielfeld);
+						return;
+					}
+					// in großbuchstaben umwandeln
+					if (!eingabe.equalsIgnoreCase("")) {
+						richtung = Character.toUpperCase(eingabe.charAt(0));
+						if (richtigeRichtung(richtung)) {
+							fehler = false;
+						}
+					} else {
+						System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Richtung!");
+						fehler = true;
+					}
+				} while (fehler == true);
 
 				// REIHE
-				System.out.print("In welcher Reihe soll der Anfang des " + (i + 1) + ".Schiffs (Länge = " + laenge + ") platziert werden? (0-9): ");
-				eingabe = reader.readLine();
-				// in großbuchstaben umwandeln
-				char reihe = Character.toUpperCase(eingabe.charAt(0));
-
-				// validen wert für reihe erzwingen
-				while (!richtigeReihe(reihe)) {
-					System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Reihe!");
-					System.out.print("Bitte erneut eingeben (0-9): ");
+				do {
+					System.out.print(
+							"In welcher Reihe soll der Anfang des " + (i + 1) + ".Schiffs (Länge = " + laenge + ")" + " platziert werden? (0-9): ");
+					// buffer leeren
+					while (reader.ready()) {
+						reader.skip(1);
+					}
 					eingabe = reader.readLine();
-					reihe = Character.toUpperCase(eingabe.charAt(0));
-				}
+					// in großbuchstaben umwandeln
+					if (!eingabe.equalsIgnoreCase("")) {
+						reihe = Character.toUpperCase(eingabe.charAt(0));
+						if (richtigeReihe(reihe)) {
+							fehler = false;
+							System.out.println("kein fehler " + fehler);
+						}
+					} else {
+						System.out.println("\"" + eingabe + "\" ist keine gültige Eingabe für Richtung!");
+						fehler = true;
+					}
+					System.out.println("fehler: " + fehler);
+				} while (fehler == true);
 
 				// SPALTE
-				System.out.print("In welcher Spalte soll der Anfang des " + (i + 1) + ". Schiffs (Länge = " + laenge + ") platziert werden? (A-J): ");
-				eingabe = reader.readLine();
-				// in großbuchstaben umwandeln
-				char spalte = Character.toUpperCase(eingabe.charAt(0));
+				do {
+					System.out.print(
+							"In welcher Spalte soll der Anfang des " + (i + 1) + ". Schiffs (Länge = " + laenge + ") platziert werden? (A-J): ");
 
-				// validen wert für spalte erzwingen
-				while (!richtigeSpalte(spalte)) {
-					System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Spalte!");
-					System.out.print("Bitte erneut eingeben (A-J): ");
+					// buffer leeren
+					while (reader.ready()) {
+						reader.skip(1);
+					}
 					eingabe = reader.readLine();
-					spalte = Character.toUpperCase(eingabe.charAt(0));
-				}
+
+					if (!eingabe.equalsIgnoreCase("")) {
+						// in großbuchstaben umwandeln
+						spalte = Character.toUpperCase(eingabe.charAt(0));
+						// auf richtigkeit kontrollieren
+						if (richtigeSpalte(spalte)) {
+							fehler = false;
+						}
+					} else {
+						System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Spalte!");
+						fehler = true;
+					}
+				} while (fehler == true);
 
 				final int schiffBerührtIndex = schiffBeruehrt(richtung, reihe, spalte, spielfeld, laenge);
 
@@ -676,8 +744,6 @@ public class SchiffeVersenken {
 					spielfeldAusgeben(spielfeld);
 				}
 			} while (wiederholen == true);
-			// FORMAT
-			System.out.println();
 		}
 	}
 
@@ -689,7 +755,6 @@ public class SchiffeVersenken {
 		// länge des schiffe setzen
 		final int[] laengen = { 2, 3, 3, 4, 5 };
 
-		
 		spielfeldAusgeben(spielfeld);
 
 		// für alle 5 schiffe
