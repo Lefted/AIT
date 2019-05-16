@@ -181,7 +181,6 @@ public class SchiffeVersenken {
 								int posX = Integer.parseInt(koordinaten[0]);
 								int posY = Integer.parseInt(koordinaten[1]);
 								char posXStr = (char) (posX + 'A');
-								System.out.println("Dein Mitspieler hat auf " + posXStr + "/" + posY + " geschossen");
 								try {
 									Thread.sleep(3000);
 								} catch (InterruptedException e) {
@@ -190,8 +189,10 @@ public class SchiffeVersenken {
 								if (spielfeld[posX][posY] == '*') {
 									spielfeld[posX][posY] = '#';
 									datenSenden("kugel:getroffen", dataOut);
+									System.out.println("Dein Schiff bei " + posXStr + "/" + posY + " wurde getroffen!");
 								} else {
 									datenSenden("kugel:verfehlt", dataOut);
+									System.out.println("Die Kugel bei " + posXStr + "/" + posY + " ging daneben!");
 								}
 							}
 							if (msgIn.equalsIgnoreCase("schießen:fertig")) {
@@ -653,6 +654,9 @@ public class SchiffeVersenken {
 						richtung = Character.toUpperCase(eingabe.charAt(0));
 						if (richtigeRichtung(richtung)) {
 							fehler = false;
+						} else {
+							System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Richtung!");
+							fehler = true;
 						}
 					} else {
 						System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Richtung!");
@@ -674,13 +678,14 @@ public class SchiffeVersenken {
 						reihe = Character.toUpperCase(eingabe.charAt(0));
 						if (richtigeReihe(reihe)) {
 							fehler = false;
-							System.out.println("kein fehler " + fehler);
+						} else {
+							System.out.println("\"" + eingabe + "\" ist keine gültige Eingabe für Richtung!");
+							fehler = true;
 						}
 					} else {
 						System.out.println("\"" + eingabe + "\" ist keine gültige Eingabe für Richtung!");
 						fehler = true;
 					}
-					System.out.println("fehler: " + fehler);
 				} while (fehler == true);
 
 				// SPALTE
@@ -697,9 +702,11 @@ public class SchiffeVersenken {
 					if (!eingabe.equalsIgnoreCase("")) {
 						// in großbuchstaben umwandeln
 						spalte = Character.toUpperCase(eingabe.charAt(0));
-						// auf richtigkeit kontrollieren
 						if (richtigeSpalte(spalte)) {
 							fehler = false;
+						} else {
+							System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Spalte!");
+							fehler = true;
 						}
 					} else {
 						System.out.println("\"" + eingabe + "\"" + " ist keine gültige Eingabe für Spalte!");
