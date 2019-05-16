@@ -36,7 +36,8 @@ public class SchiffeVersenken {
 	}
 
 	// code für den multipalyer-verlauf
-	private static void multiplayer(BufferedReader reader, char[][] spielfeld) throws IOException, InterruptedException {
+	private static void multiplayer(BufferedReader reader, char[][] spielfeld)
+			throws IOException, InterruptedException {
 		// VARIABLEN
 		final String ip = "";
 		final int port = 1201;
@@ -52,7 +53,8 @@ public class SchiffeVersenken {
 		{
 			if (istServer == true) {
 				serverSocket = new ServerSocket(port);
-				System.out.println("Server auf IP-Addresse:" + InetAddress.getLocalHost().getHostAddress() + " gestartet!");
+				System.out.println(
+						"Server auf IP-Addresse:" + InetAddress.getLocalHost().getHostAddress() + " gestartet!");
 				System.out.println("Warte auf Client...");
 				socket = serverSocket.accept();
 				System.out.println("Client erfolgreich gefunden!");
@@ -66,10 +68,11 @@ public class SchiffeVersenken {
 
 		// spielverlauf
 		try {
-			//VARIABLEN
+			// VARIABLEN
 			boolean spielLaeuft = true;
 			boolean instanzHatErstenZug = false;
 			boolean weiter = false;
+			boolean devMode = false;
 			final String infoPre = "<info> ";
 
 			// bildschirm leeren
@@ -78,11 +81,15 @@ public class SchiffeVersenken {
 			while (reader.ready()) {
 				reader.skip(1);
 			}
-			reader.readLine();
+			String eingabe = reader.readLine();
+			if (eingabe.equalsIgnoreCase("dev")) {
+				devMode = true;
+			}
+			
 			konsoleLeeren();
 
 			// schiffe platzieren
-			schiffeEinlesen(spielfeld, reader, dataOut);
+			schiffeEinlesen(spielfeld, devMode, reader, dataOut);
 			datenSenden("schiffIndex:alle", dataOut);
 
 			// status ausgeben das wie vielte schiff der mitspieler setzt
@@ -93,11 +100,17 @@ public class SchiffeVersenken {
 						if (msgIn.equalsIgnoreCase("schiffIndex:alle")) {
 							System.out.println(infoPre + "Dein Mitspieler hat alle Schiffe gesetzt.");
 							if (!istServer) {
-								System.out.println(infoPre + "Dein Mitspieler wählt aus, wer den ersten Zug machen darf.");
+								System.out.println(
+										infoPre + "Dein Mitspieler wählt aus, wer den ersten Zug machen darf.");
 							}
 						} else {
 							int anzahlSchiffeMitspieler = Integer.parseInt(msgIn.replace("schiffIndex:", ""));
-							System.out.println(infoPre + "Dein Mitspieler setzt gerade das " + anzahlSchiffeMitspieler + ". Schiff.");
+							if (anzahlSchiffeMitspieler == 1) {
+								// FORMAT
+								System.out.println();
+							}
+							System.out.println(infoPre + "Dein Mitspieler setzt gerade das " + anzahlSchiffeMitspieler
+									+ ". Schiff.");
 						}
 					}
 				}
@@ -135,6 +148,9 @@ public class SchiffeVersenken {
 					weiter = false;
 					msgIn = "";
 
+					// FORMAT
+					konsoleLeeren();
+
 					System.out.println("Warten bis Mitspieler gezogen hat...");
 					while (weiter == false) {
 						if (dataIn.available() != 0) {
@@ -148,15 +164,21 @@ public class SchiffeVersenken {
 								char posXStr = (char) (posX + 'A');
 								System.out.println("Dein Mitspieler hat auf " + posXStr + "/" + posY + " geschossen");
 								try {
-									Thread.sleep(3000);
+									Thread.sleep(1500);
 								} catch (InterruptedException e) {
 									e.printStackTrace();
 								}
 								if (spielfeld[posX][posY] == '*') {
 									spielfeld[posX][posY] = '#';
-									datenSenden("kugel:getroffen", dataOut);
+									if (spielVorbei(spielfeld)) {
+										datenSenden("spiel:vorbei", dataOut);
+									} else {
+										datenSenden("kugel:getroffen", dataOut);
+										System.out.println("Dein Schiff bei " + posXStr + "/" + posY + " wurde getroffen!");
+									}
 								} else {
 									datenSenden("kugel:verfehlt", dataOut);
+									System.out.println("Die Kugel bei " + posXStr + "/" + posY + " ging daneben!");
 								}
 							}
 							if (msgIn.equalsIgnoreCase("schießen:fertig")) {
@@ -171,6 +193,8 @@ public class SchiffeVersenken {
 					weiter = false;
 					msgIn = "";
 
+					konsoleLeeren();
+
 					System.out.println("Warten bis Mitspieler gezogen hat...");
 					while (weiter == false) {
 						if (dataIn.available() != 0) {
@@ -182,14 +206,18 @@ public class SchiffeVersenken {
 								int posY = Integer.parseInt(koordinaten[1]);
 								char posXStr = (char) (posX + 'A');
 								try {
-									Thread.sleep(3000);
+									Thread.sleep(1500);
 								} catch (InterruptedException e) {
 									e.printStackTrace();
 								}
 								if (spielfeld[posX][posY] == '*') {
 									spielfeld[posX][posY] = '#';
-									datenSenden("kugel:getroffen", dataOut);
-									System.out.println("Dein Schiff bei " + posXStr + "/" + posY + " wurde getroffen!");
+									if (spielVorbei(spielfeld)) {
+										datenSenden("spiel:vorbei", dataOut);
+									} else {
+										datenSenden("kugel:getroffen", dataOut);
+										System.out.println("Dein Schiff bei " + posXStr + "/" + posY + " wurde getroffen!");
+									}
 								} else {
 									datenSenden("kugel:verfehlt", dataOut);
 									System.out.println("Die Kugel bei " + posXStr + "/" + posY + " ging daneben!");
@@ -216,9 +244,25 @@ public class SchiffeVersenken {
 
 	}
 
+	// testen, ob spiel vorbei ist
+	private static boolean spielVorbei(char[][] spielfeld) {
+		boolean ergebnis = true;;
+		
+		for (int i = 0; i < spielfeld.length; i++) {
+			for (int j = 0; j < spielfeld[0].length; j++) {
+				if (spielfeld[i][j] == '*') {
+					ergebnis = false;
+				}
+			}
+		}
+		
+		return ergebnis;
+	}
+	
 	// (multiplayer) warten bis daten erhalten wurden
 	@SuppressWarnings("unused")
-	private static void warten(String activationString, Runnable run, DataInputStream dataInput, DataOutputStream dataOut) throws IOException {
+	private static void warten(String activationString, Runnable run, DataInputStream dataInput,
+			DataOutputStream dataOut) throws IOException {
 		boolean weiter = false;
 		while (weiter == false) {
 			if (dataInput.available() != 0) {
@@ -232,9 +276,9 @@ public class SchiffeVersenken {
 	}
 
 	// (multiplayer) schuss einlesen, überprüfen, und überprüfen ob getroffen wurde
-	private static void schießen(BufferedReader reader, char[][] spielfeld, DataOutputStream dataOutput, DataInputStream dataInput)
-			throws IOException, InterruptedException {
-		//VARIABLEN
+	private static void schießen(BufferedReader reader, char[][] spielfeld, DataOutputStream dataOutput,
+			DataInputStream dataInput) throws IOException, InterruptedException {
+		// VARIABLEN
 		String msgIn = null;
 		String eingabe;
 		char c;
@@ -247,9 +291,7 @@ public class SchiffeVersenken {
 		spielfeldAusgeben(spielfeld);
 		System.out.println();
 		System.out.println();
-		System.out.println();
-
-		System.out.println("Wohin soll geschossen werden?");
+		System.out.println("- - - - - - KUGEL - - - - - -");
 		do {
 			System.out.print("Welche x-Koordinate soll die Kugel haben? (A-J): ");
 
@@ -293,15 +335,15 @@ public class SchiffeVersenken {
 		} while (fehler);
 		System.out.println(" ┌──────────┐        ╔═╗       ___||___");
 		System.out.println(" └O─────O───┘        ╚═╝   ~~~~\\_____╦/~~~~");
-		Thread.sleep(1000);
+		Thread.sleep(500);
 		System.out.println(".");
-		Thread.sleep(1000);
+		Thread.sleep(500);
 		System.out.println("..");
-		Thread.sleep(1000);
-		System.out.println("..");
+		Thread.sleep(500);
+		System.out.println("...");
 		datenSenden("schießenPos:" + xPos + "," + yPos, dataOutput);
 
-		//empfangen ob getroffen wurde
+		// empfangen ob getroffen wurde
 		boolean weiter = false;
 		while (weiter == false) {
 			if (dataInput.available() != 0) {
@@ -311,16 +353,22 @@ public class SchiffeVersenken {
 				} else {
 					System.out.println("Die Kugel hat nicht getroffen!");
 				}
+				while (reader.ready()) {
+					reader.skip(1);
+				}
+				System.out.println("Drücke {Enter}, um deinen Zug zu beenden.");
+				reader.readLine();
 				weiter = true;
 			}
 		}
 	}
 
-	// (multiplayer) bestimmt wer den ersten zug macht, gibt zurück ob instanz den erster zug hat
+	// (multiplayer) bestimmt wer den ersten zug macht, gibt zurück ob instanz den
+	// erster zug hat
 	private static boolean ersterZug(boolean istServer, BufferedReader reader, DataOutputStream dataOutput) {
 		boolean fehler = false;
 		boolean instanzHatErstenZug = true;
-		//FORMAT
+		// FORMAT
 		System.out.println();
 		do {
 			try {
@@ -491,13 +539,13 @@ public class SchiffeVersenken {
 				// links und rechts
 				if ((i > 0) && (i < 18)) {
 					if ((j == 15) && (i == 3)) {
-						//						buffer.append("sᴄʜɪғғᴇ ᴠᴇʀsᴇɴᴋᴇɴ");
+						// buffer.append("sᴄʜɪғғᴇ ᴠᴇʀsᴇɴᴋᴇɴ");
 						buffer.append("SCHIFFE VERSENKEN");
 					} else if ((j == 15) && (i == 7)) {
-						//						buffer.append("sɪɴɢʟᴇᴘʟᴀʏᴇʀ  (s)");
+						// buffer.append("sɪɴɢʟᴇᴘʟᴀʏᴇʀ (s)");
 						buffer.append("SINGLEPLAYER (S)");
 					} else if ((j == 15) && (i == 10)) {
-						//						buffer.append("ᴍᴜʟᴛɪᴘʟᴀʏᴇʀ   (ᴍ)");
+						// buffer.append("ᴍᴜʟᴛɪᴘʟᴀʏᴇʀ (ᴍ)");
 						buffer.append("MULTIPLAYER (M)");
 					} else if ((j == 39) && (i == 17)) {
 						buffer.append("von Moritz");
@@ -560,8 +608,8 @@ public class SchiffeVersenken {
 
 		System.out.println(buffer);
 
-		//		System.out.println(" ┌──────────┐        ╔═╗       ___||___");
-		//		System.out.println(" └O─────O───┘        ╚═╝   ~~~~\\_____╦/~~~~");
+		// System.out.println(" ┌──────────┐ ╔═╗ ___||___");
+		// System.out.println(" └O─────O───┘ ╚═╝ ~~~~\\_____╦/~~~~");
 	}
 
 	// spielfeld in der konsole ausgeben
@@ -578,8 +626,10 @@ public class SchiffeVersenken {
 		}
 	}
 
-	// (multiplayer) spieler schiffe platzieren lassen; sendet aktuelles schiff als info
-	private static void schiffeEinlesen(char[][] spielfeld, BufferedReader reader, DataOutputStream dataOutput) throws IOException {
+	// (multiplayer) spieler schiffe platzieren lassen; sendet aktuelles schiff als
+	// info
+	private static void schiffeEinlesen(char[][] spielfeld, boolean devMode, BufferedReader reader, DataOutputStream dataOutput)
+			throws IOException {
 		// falls die eingabe ungültig war soll sie wiederholt werden
 		boolean wiederholen = false;
 		boolean fehler = false;
@@ -593,10 +643,10 @@ public class SchiffeVersenken {
 		char reihe = 0;
 		char spalte = 0;
 
-		//FORMAT
+		// FORMAT
 		System.out.println();
 		spielfeldAusgeben(spielfeld);
-		//FORMAT
+		// FORMAT
 		System.out.println();
 		System.out.println();
 		System.out.println();
@@ -622,8 +672,8 @@ public class SchiffeVersenken {
 					}
 					eingabe = reader.readLine();
 
-					//DEVELOPER
-					if (eingabe.equalsIgnoreCase("skip")) {
+					// DEVELOPER
+					if (eingabe.equalsIgnoreCase("skip") && devMode == true) {
 						spielfeld[0][0] = '*';
 						spielfeld[1][0] = '*';
 
@@ -666,8 +716,8 @@ public class SchiffeVersenken {
 
 				// REIHE
 				do {
-					System.out.print(
-							"In welcher Reihe soll der Anfang des " + (i + 1) + ".Schiffs (Länge = " + laenge + ")" + " platziert werden? (0-9): ");
+					System.out.print("In welcher Reihe soll der Anfang des " + (i + 1) + ".Schiffs (Länge = " + laenge
+							+ ")" + " platziert werden? (0-9): ");
 					// buffer leeren
 					while (reader.ready()) {
 						reader.skip(1);
@@ -690,8 +740,8 @@ public class SchiffeVersenken {
 
 				// SPALTE
 				do {
-					System.out.print(
-							"In welcher Spalte soll der Anfang des " + (i + 1) + ". Schiffs (Länge = " + laenge + ") platziert werden? (A-J): ");
+					System.out.print("In welcher Spalte soll der Anfang des " + (i + 1) + ". Schiffs (Länge = " + laenge
+							+ ") platziert werden? (A-J): ");
 
 					// buffer leeren
 					while (reader.ready()) {
@@ -775,8 +825,8 @@ public class SchiffeVersenken {
 				System.out.println();
 
 				// RICHTUNG
-				System.out.print(
-						"In welcher Richtung soll das " + (i + 1) + ".Schiff (Länge = " + laenge + ") platziert werden? (H)orizontal/(V)ertikal: ");
+				System.out.print("In welcher Richtung soll das " + (i + 1) + ".Schiff (Länge = " + laenge
+						+ ") platziert werden? (H)orizontal/(V)ertikal: ");
 				String eingabe = reader.readLine();
 				// in großbuchstaben umwandeln
 				char richtung = Character.toUpperCase(eingabe.charAt(0));
@@ -790,7 +840,8 @@ public class SchiffeVersenken {
 				}
 
 				// REIHE
-				System.out.print("In welcher Reihe soll der Anfang des " + (i + 1) + ".Schiffs (Länge = " + laenge + ") platziert werden? (0-9): ");
+				System.out.print("In welcher Reihe soll der Anfang des " + (i + 1) + ".Schiffs (Länge = " + laenge
+						+ ") platziert werden? (0-9): ");
 				eingabe = reader.readLine();
 				// in großbuchstaben umwandeln
 				char reihe = Character.toUpperCase(eingabe.charAt(0));
@@ -804,7 +855,8 @@ public class SchiffeVersenken {
 				}
 
 				// SPALTE
-				System.out.print("In welcher Spalte soll der Anfang des " + (i + 1) + ". Schiffs (Länge = " + laenge + ") platziert werden? (A-J): ");
+				System.out.print("In welcher Spalte soll der Anfang des " + (i + 1) + ". Schiffs (Länge = " + laenge
+						+ ") platziert werden? (A-J): ");
 				eingabe = reader.readLine();
 				// in großbuchstaben umwandeln
 				char spalte = Character.toUpperCase(eingabe.charAt(0));
