@@ -350,7 +350,10 @@ public class SchiffeVersenken {
 				msgIn = dataInput.readUTF();
 				if (msgIn.equalsIgnoreCase("kugel:getroffen")) {
 					System.out.println("Die Kugel hat getroffen!");
-				} else {
+				} else if (msgIn.equalsIgnoreCase("spiel:vorbei")) {
+					System.out.println("Alle Schiffe getroffen, das Spiel ist vorbei!");
+					System.exit(0);
+				}else {
 					System.out.println("Die Kugel hat nicht getroffen!");
 				}
 				while (reader.ready()) {
