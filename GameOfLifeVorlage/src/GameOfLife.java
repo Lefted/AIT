@@ -1,3 +1,4 @@
+import java.awt.Color;
 import java.awt.EventQueue;
 
 import my.dzeik.life.GameOfLifeLib;
@@ -16,7 +17,7 @@ public class GameOfLife extends GameOfLifeLib {
 	/**
 	 * Launch the application.
 	 */
-	
+
 	boolean[][] naechsteDaten = new boolean[ZELLEN_X][ZELLEN_Y];
 	
 	public static void main(String[] args) {
@@ -25,6 +26,7 @@ public class GameOfLife extends GameOfLifeLib {
 				try {
 					GameOfLife frame = new GameOfLife();
 					frame.setLocationRelativeTo(null);
+					frame.getContentPane().setBackground(Color.LIGHT_GRAY);
 					frame.setVisible(true);
 					
 					frame.autoDelay = 1;

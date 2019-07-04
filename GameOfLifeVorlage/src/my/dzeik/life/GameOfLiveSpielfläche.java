@@ -36,8 +36,10 @@ private final int FIELD_WIDTH = 8;
 
    protected void paintComponent(Graphics g) {
       super.paintComponent(g);
+      // BACKGROUND
       g.setColor(Color.LIGHT_GRAY);
-      g.fillRect(0, 0, this.cellsX * 9 + 1, this.cellsY * 9 + 1);
+      g.fillRect(0, 0, 50 * 9 + 1, 50 * 9 + 1);
+      
       g.setColor(Color.LIGHT_GRAY);
 
       int x;
@@ -50,10 +52,13 @@ private final int FIELD_WIDTH = 8;
       }
 
       
-      int random = (int) (Math.random() * 100 + 0);
-      Color gray = new Color(random, random, random);
-      g.setColor(gray);
+      
+      // RAHMEN
+      g.setColor(Color.BLACK);
+      g.drawRect(0, 0, 40 * 9, 40 * 9);
 
+      // FELDER
+      g.setColor(Color.GRAY);
       for(x = 0; x < this.data.length; ++x) {
          for(int y = 0; y < this.data[x].length; ++y) {
             if(this.data[x][y]) {
