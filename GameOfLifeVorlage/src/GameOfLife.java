@@ -2,6 +2,7 @@ import java.awt.EventQueue;
 
 import my.dzeik.life.GameOfLifeLib;
 
+@SuppressWarnings("serial")
 public class GameOfLife extends GameOfLifeLib {
 
 	/*
@@ -25,6 +26,8 @@ public class GameOfLife extends GameOfLifeLib {
 					GameOfLife frame = new GameOfLife();
 					frame.setLocationRelativeTo(null);
 					frame.setVisible(true);
+					
+					frame.autoDelay = 1;
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -43,7 +46,6 @@ public class GameOfLife extends GameOfLifeLib {
 			for (int x = 0; x < ZELLEN_X; x++) {
 				
 				final int NACHBARN = zaehleLebendeNachbarn(x, y);
-				System.out.println(NACHBARN);
 				
 				if (daten[x][y] == true) {
 					if ((NACHBARN == 2) || (NACHBARN == 3)) {
@@ -64,9 +66,9 @@ public class GameOfLife extends GameOfLifeLib {
 
 	public int zaehleLebendeNachbarn(int posX, int posY) {
 		int nachbarn = 0;
-
+		
 		for (int y = posY - 1; y <= posY + 1; y++) {
-			for (int x = posX - 1; x <= posY + 1; x++) {
+			for (int x = posX - 1; x <= posX + 1; x++) {
 
 				int zugriffX = x;
 				int zugriffY = y;
