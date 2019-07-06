@@ -1,3 +1,4 @@
+package me.moritz.gameoflife;
 import java.awt.Color;
 import java.awt.EventQueue;
 
@@ -19,16 +20,20 @@ public class GameOfLife extends GameOfLifeLib {
 	 */
 
 	boolean[][] naechsteDaten = new boolean[ZELLEN_X][ZELLEN_Y];
+	public static GameOfLife frame;
+	public static int generation = 0;
+	
 	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				try {
-					GameOfLife frame = new GameOfLife();
+					frame = new GameOfLife();
 					frame.setLocationRelativeTo(null);
 					frame.getContentPane().setBackground(Color.LIGHT_GRAY);
 					frame.setVisible(true);
-					
+					frame.setResizable(false);
 					frame.autoDelay = 1;
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -41,6 +46,9 @@ public class GameOfLife extends GameOfLifeLib {
 	public void step() {
 		erneuereFeld();
 		aktualisiereFeld();
+		generation = (generation < Integer.MAX_VALUE) ? generation += 1 : generation;
+		frame.getGenerationsLabel().setText("Generation: " + generation);
+		frame.getContentPane().revalidate();
 	}
 
 	public void erneuereFeld() {
@@ -69,8 +77,8 @@ public class GameOfLife extends GameOfLifeLib {
 	public int zaehleLebendeNachbarn(int posX, int posY) {
 		int nachbarn = 0;
 		
-		for (int y = posY - 1; y <= posY + 1; y++) {
-			for (int x = posX - 1; x <= posX + 1; x++) {
+		for (int y = posY - 1; y <= (posY + 1); y++) {
+			for (int x = posX - 1; x <= (posX + 1); x++) {
 
 				int zugriffX = x;
 				int zugriffY = y;
@@ -81,10 +89,10 @@ public class GameOfLife extends GameOfLifeLib {
 				if (zugriffY < 0) {
 					zugriffY = ZELLEN_Y -1;
 				}
-				if (zugriffX > ZELLEN_X -1) {
+				if (zugriffX > (ZELLEN_X -1)) {
 					zugriffX = 0;
 				}
-				if (zugriffY > ZELLEN_Y -1) {
+				if (zugriffY > (ZELLEN_Y -1)) {
 					zugriffY = 0;
 				}
 				
