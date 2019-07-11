@@ -1,5 +1,9 @@
 import java.awt.Color;
 import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
 
 import my.dzeik.life.GameOfLifeLib;
 
@@ -17,6 +21,8 @@ public class GameOfLife extends GameOfLifeLib {
 	/**
 	 * Launch the application.
 	 */
+	
+	private static JButton btnEditor;
 
 	boolean[][] naechsteDaten = new boolean[ZELLEN_X][ZELLEN_Y];
 	
@@ -27,8 +33,19 @@ public class GameOfLife extends GameOfLifeLib {
 					GameOfLife frame = new GameOfLife();
 					frame.setLocationRelativeTo(null);
 					frame.getContentPane().setBackground(Color.LIGHT_GRAY);
-					frame.setVisible(true);
 					
+					btnEditor = new JButton("Editor");
+					btnEditor.setBounds(448, 75, 104, 23);
+					btnEditor.addActionListener(new ActionListener() {
+						
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							Editor.btnEditorClicked();
+						}
+					});
+					frame.add(btnEditor);
+					
+					frame.setVisible(true);
 					frame.autoDelay = 1;
 				} catch (Exception e) {
 					e.printStackTrace();
