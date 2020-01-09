@@ -12,11 +12,6 @@ public class Punkt {
 	}
 
 	// METHODEN
-	public double getAbstand() {
-		// Abstand zum Ursprung mit Satz des Pythagoras berechnen
-		return Math.sqrt(this.x * this.x + this.y * this.y);
-	}
-
 	public double getX() {
 		return x;
 	}
