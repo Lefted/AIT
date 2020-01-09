@@ -7,6 +7,7 @@ import javax.swing.JButton;
 
 import my.dzeik.life.GameOfLifeLib;
 
+
 @SuppressWarnings("serial")
 public class GameOfLife extends GameOfLifeLib {
 
@@ -83,6 +84,7 @@ public class GameOfLife extends GameOfLifeLib {
 		}
 	}
 
+	
 	public int zaehleLebendeNachbarn(int posX, int posY) {
 		int nachbarn = 0;
 		
