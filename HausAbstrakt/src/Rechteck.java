@@ -1,5 +1,5 @@
 
-public class Rechteck {
+public class Rechteck extends GeometrischesObjekt {
 
 	// ATTRIBUTE
 	private Punkt a;
@@ -19,10 +19,13 @@ public class Rechteck {
 	private void seitenBerechnen() {
 		this.seiteA = Math.abs(this.a.getX() - this.b.getX());
 		this.seiteB = Math.abs(this.a.getY() - this.b.getY());
+		
+		this.berechneFlaeche();
 	}
 
-	public double getFlaeche() {
-		return this.seiteA * this.seiteB;
+	@Override
+	public void berechneFlaeche() {
+		this.flaeche = this.seiteA * this.seiteB;
 	}
 
 	public Punkt getA() {

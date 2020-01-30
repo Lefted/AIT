@@ -1,5 +1,5 @@
 
-public class Dreieck {
+public class Dreieck extends GeometrischesObjekt {
 
 	// ATTRIBUTE
 	private Punkt a;
@@ -14,7 +14,7 @@ public class Dreieck {
 		this.a = a;
 		this.b = b;
 		this.c = c;
-		
+
 		this.seitenBerechnen();
 	}
 
@@ -23,21 +23,24 @@ public class Dreieck {
 		this.seiteA = this.getAbstand(this.b, this.c);
 		this.seiteB = this.getAbstand(this.a, this.c);
 		this.seiteC = this.getAbstand(this.a, this.b);
+		
+		this.berechneFlaeche();
 	}
 
 	private double getAbstand(Punkt p1, Punkt p2) {
 		final double distX = Math.abs(p1.getX() - p2.getX());
 		final double distY = Math.abs(p1.getY() - p2.getY());
-		
+
 		// SATZ DES PYTHAGORAS
 		return Math.sqrt(distX * distX + distY * distY);
 	}
 
-	public double getFlaeche() {
+	@Override
+	public void berechneFlaeche() {
 		final double s = (this.seiteA + this.seiteB + this.seiteC) / 2;
-		
+
 		// SATZ DES HERON
-		return Math.sqrt(s * (s - this.seiteA) * (s - this.seiteB) * (s - this.seiteC));
+		this.flaeche = Math.sqrt(s * (s - this.seiteA) * (s - this.seiteB) * (s - this.seiteC));
 	}
 
 	public Punkt getA() {
