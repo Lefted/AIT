@@ -6,7 +6,7 @@ public class Auto extends Fahrzeug {
 
 	// KONSTRUKTOR
 	public Auto() {
-//		System.out.println("Ich bin ein Auto");
+		// System.out.println("Ich bin ein Auto");
 		this.setAnzahlRaeder(4);
 	}
 
@@ -19,4 +19,8 @@ public class Auto extends Fahrzeug {
 		this.hatKlimaanlage = hatKlimaanlage;
 	}
 
+	@Override
+	public String toString() {
+		return super.toString() + " Auto [hatKlimaanlage=" + hatKlimaanlage + "]";
+	}
 }

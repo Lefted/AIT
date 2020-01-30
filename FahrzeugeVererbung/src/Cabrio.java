@@ -30,4 +30,21 @@ public class Cabrio extends Auto {
 				: "Das Dach wurde erfolgreich geschlossen!";
 		System.out.println(ausgabe);
 	}
+
+	@Override
+	public String toString() {
+		return super.toString() + "Cabrio [vMaxDach=" + vMaxDach + ", dachOffen=" + dachOffen + "]";
+	}
+
+	public int getvMaxDach() {
+		return vMaxDach;
+	}
+
+	public void setvMaxDach(int vMaxDach) {
+		this.vMaxDach = vMaxDach;
+	}
+
+	public boolean isDachOffen() {
+		return dachOffen;
+	}
 }

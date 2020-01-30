@@ -1,5 +1,5 @@
 
-public class Fahrzeug {
+public abstract class Fahrzeug {
 
 	// ATTRIBUTE
 	private int anzahlRaeder;
@@ -14,12 +14,12 @@ public class Fahrzeug {
 	}
 
 	// METHODEN
-	public void beschleunigen(int wert) {
+	public void bremsen(int wert) {
 		this.geschwindigkeit -= wert;
 		this.geschwindigkeit = (this.geschwindigkeit < 0) ? 0 : this.geschwindigkeit;
 	}
 
-	public void bremsen(int wert) {
+	public void beschleunigen(int wert) {
 		this.geschwindigkeit += wert;
 		this.geschwindigkeit = (this.geschwindigkeit > this.vMax) ? this.vMax : this.geschwindigkeit;
 	}
@@ -58,5 +58,11 @@ public class Fahrzeug {
 
 	public int getGeschwindigkeit() {
 		return geschwindigkeit;
+	}
+
+	@Override
+	public String toString() {
+		return "Fahrzeug [anzahlRaeder=" + anzahlRaeder + ", geschwindigkeit=" + geschwindigkeit + ", vMax=" + vMax
+				+ ", hersteller=" + hersteller + ", modellname=" + modellname + "]";
 	}
 }
